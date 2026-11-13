@@ -1,0 +1,4 @@
+interface:
+  display_name: "全書原文教材轉繁體中文講義"
+  short_description: "平行分派子代理完整讀取，整合為二至四冊有原頁對照及推導解答的繁體中文講義"
+  default_prompt: "使用 $textbook-to-zh-tw-notes，先解析目錄再委派子代理分批閱讀原書，整合為2至4冊、每冊最多100頁的繁體中文自學講義。"
