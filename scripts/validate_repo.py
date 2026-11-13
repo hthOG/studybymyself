@@ -44,6 +44,9 @@ def validate(root=ROOT):
     for required in ('AGENTS.md', 'agent.md', 'README.md', 'setup.ps1', 'prompts/start-book.md',
                      'prompts/resume-book.md', 'prompts/source-reader.md', 'prompts/verifier.md', 'docs/VALIDATION.md',
                      'setup.sh', '.gitattributes', 'docs/PLATFORMS.md',
+                     'prompts/write-chapter.md',
+                     'skills/textbook-to-zh-tw-notes/references/chapter-authoring.md',
+                     'skills/textbook-to-zh-tw-notes/references/writing-example.md',
                      'skills/textbook-to-zh-tw-notes/references/efficiency.md',
                      'skills/textbook-to-zh-tw-notes/scripts/reuse.py'):
         if not (root / required).is_file():

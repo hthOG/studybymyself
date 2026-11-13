@@ -1,0 +1,65 @@
+\setcounter{section}{6}
+\section{平板中的熱傳導}\label{ch7}
+\sourcepage{合成測試來源 S2，p.201；並非真實教科書}
+兩個平面維持不同溫度時，熱以多快的速率穿過其間的平板？只知道兩面的溫度還不足以直接得到傳熱率：我們需要描述溫度如何隨位置改變，並把這個變化與熱流聯繫起來。本章以一維穩態模型回答這個問題。先備知識是基本微分與積分；此處來源沒有提供前後章內容，因此不假定其他章節的結論。
+
+讀完後，應能（1）區分熱通量與總傳熱率及其方向；（2）由守恆與邊界條件推得溫度分布；（3）在模型條件下計算並比較傳熱率；（4）辨認何時不能原樣沿用推導。
+
+\subsection{模型、熱通量與溫度分布}\label{ch7:model}
+\sourcepage{合成測試來源 S2，p.201}
+取平板厚度為 $L$、固定截面積為 $A$；座標 $x$ 從熱面 $x=0$ 向冷面 $x=L$ 增加。溫度 $T$ 的邊界值為 $T(0)=T_H$、$T(L)=T_C$，且 $T_H>T_C$。模型假設一維穩態傳導、熱傳導係數 $k$ 為正且為常數、內部不產熱、側面熱損失可忽略。
+
+熱通量（heat flux）$q_x$ 是單位面積的傳熱率，單位為 $\mathrm{W\,m^{-2}}$，以 $+x$ 為正；熱傳導係數（thermal conductivity）$k$ 的單位為 $\mathrm{W\,m^{-1}\,K^{-1}}$。傅立葉定律（Fourier's law）是經驗性的材料關係：
+\input{math/ch7-fourier.tex}
+負號表示熱流由高溫朝低溫；本模型溫度隨 $x$ 下降，因此梯度為負、$q_x$ 為正。通過整個截面的總傳熱率（total heat-transfer rate）為 $\dot Q=Aq_x$，單位是 $\mathrm W$；它與每單位面積的通量不同。
+
+要找到梯度，先使用穩態能量守恆：無內部產熱且面積固定時，$dq_x/dx=0$。代入式\eqref{ch7:fourier}，由於 $k$ 為常數且不為零，得到 $d^2T/dx^2=0$。兩次積分後，兩個邊界溫度決定直線的常數。
+\begin{aisupplement}{積分常數的決定；對照 S2 p.201}
+對 $x$ 積分一次，$dT/dx=C_1$；再對 $x$ 積分得 $T(x)=C_1x+C_2$。由 $T(0)=T_H$ 得 $C_2=T_H$；由 $T(L)=T_C$ 得 $C_1=(T_C-T_H)/L$。因此
+\input{math/ch7-profile.tex}
+\end{aisupplement}
+式\eqref{ch7:profile}顯示在此模型中溫度沿厚度線性下降。將其梯度 $(T_C-T_H)/L$ 代入傅立葉定律，再乘以面積，得到
+\input{math/ch7-rate.tex}
+固定 $k$、面積與溫差時，厚度加倍使總傳熱率減半；固定梯度而增加面積，總傳熱率增大，通量不變。若兩面溫度相同，溫度分布為常數且通量為零。若有內部產熱或 $k$ 隨位置改變，上述推導不能原樣使用。接下來用來源例題將關係轉成數值。
+
+\subsection{例題與表格}\label{ch7:example}
+\sourcepage{合成測試來源 S2，p.202}
+\begin{examplebox}{例題 7.1（S2 p.202）}
+平板的 $L=0.020\,\mathrm m$、$A=0.50\,\mathrm{m^2}$、$k=0.80\,\mathrm{W\,m^{-1}\,K^{-1}}$，兩面溫度分別為 $30\,{}^\circ\mathrm C$ 與 $20\,{}^\circ\mathrm C$。採用 p.201 的模型，求（a）熱通量及其方向；（b）總傳熱率。
+
+\textbf{判讀與選法。} 熱面在 $x=0$，冷面在 $x=L$，待求 $q_x$ 與 $\dot Q$。題設採用上述穩態常數 $k$ 模型，故先由兩邊界求線性梯度，再用傅立葉定律求通量，最後乘截面積。
+
+\textbf{計算。} 兩面溫差為 $10\,\mathrm K$（攝氏溫差與開爾文溫差數值相同），故
+\[
+\frac{dT}{dx}=\frac{T_C-T_H}{L}=\frac{-10\,\mathrm K}{0.020\,\mathrm m}=-500\,\mathrm{K\,m^{-1}},
+\]
+\[
+q_x=-k\frac{dT}{dx}=-(0.80)(-500)=400\,\mathrm{W\,m^{-2}},\qquad
+\dot Q=Aq_x=(0.50\,\mathrm{m^2})(400\,\mathrm{W\,m^{-2}})=200\,\mathrm W.
+\]
+因此（a）通量為 $400\,\mathrm{W\,m^{-2}}$，沿 $+x$，由熱面朝冷面；（b）總傳熱率為 $200\,\mathrm W$。核對：梯度為負且 $k>0$，傅立葉定律給正通量；面積乘通量的單位為瓦特。這些數值與 S2 報告的結果一致。
+\end{examplebox}
+
+表 7.1 的第一欄是由熱面量起的位置 $x$（m），第二欄是溫度（$^\circ$C）。依位置遞增比較：每增加 $0.010\,\mathrm m$，溫度下降 $5\,{}^\circ\mathrm C$；中點為 $25\,{}^\circ\mathrm C$，反映式\eqref{ch7:profile}的線性分布。這些是模型計算值，並非實驗測量值。
+\begin{center}
+表 7.1：例題 7.1 平板中的溫度（合成來源 S2 p.202）\\[3pt]
+\begin{tabular}{cc}\toprule
+$x/\mathrm m$ & $T/{}^\circ\mathrm C$\\\midrule
+0.000 & 30\\ 0.010 & 25\\ 0.020 & 20\\\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{章末複習與練習}\label{ch7:review}
+\sourcepage{合成測試來源 S2，pp.201--202}
+\textbf{概念依賴：}邊界溫度與模型假設 $\to$ 穩態守恆 $\to$ 常數梯度與線性溫度分布 $\to$ 傅立葉定律求通量 $\to$ 乘面積求總傳熱率。
+
+\begin{center}\begin{tabular}{p{.23\linewidth}p{.68\linewidth}}\toprule
+關係 & 條件與用途\\\midrule
+式\eqref{ch7:fourier} & 經驗材料關係；以 $+x$ 為正，由溫度梯度求通量。\\
+式\eqref{ch7:profile} & 一維穩態、常數正 $k$、固定面積、無內部產熱及可忽略側損，並使用兩面指定溫度；求板內溫度。\\
+式\eqref{ch7:rate} & 同上條件；由厚度、溫差及面積求通量與總傳熱率。\\\bottomrule\end{tabular}\end{center}
+\textbf{術語與符號：}熱通量（heat flux）$q_x$，$\mathrm{W\,m^{-2}}$；總傳熱率（total heat-transfer rate）$\dot Q$，$\mathrm W$；熱傳導係數（thermal conductivity）$k$，$\mathrm{W\,m^{-1}\,K^{-1}}$；溫度（temperature）$T$、兩面溫度 $T_H,T_C$；位置（position）$x$、厚度（thickness）$L$，單位 m；截面積（cross-sectional area）$A$，單位 $\mathrm{m^2}$。溫度差在計算中以 K 表示。
+
+\textbf{題目與目標：}例題 7.1（S2 p.202）練習由梯度求方向、通量及總傳熱率；下列習題 7.1 練習厚度改變時的比較及單位區別。
+
+\textbf{習題 7.1（S2 p.202）。}保持例題 7.1 的熱傳導係數、面積與兩面溫度不變，但將厚度加倍為 $0.040\,\mathrm m$。求（a）新的熱通量；（b）總傳熱率；（c）新總傳熱率與例題 7.1 的比值。解釋通量和總傳熱率為何有不同單位。提示與參考解答見章末。

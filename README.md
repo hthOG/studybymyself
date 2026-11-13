@@ -17,7 +17,9 @@
 必要時執行一鍵環境準備；遵守 Codex 當前權限，完成後交付 PDF、LaTeX 與核驗報告。
 ```
 
-完整、可重複使用的 [啟動 prompt](prompts/start-book.md) 與 [續作 prompt](prompts/resume-book.md) 已包含講義、分工與檢核要求。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
+[全書啟動 prompt](prompts/start-book.md)負責從閱讀到交付；[逐章編寫 prompt](prompts/write-chapter.md)直接規定章稿如何寫。寫作前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)：含自造來源、失敗短稿、完整推導／例題及章末解答，示範內容不得移入真實原書。[續作 prompt](prompts/resume-book.md)處理中斷續接。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
+
+想先看 agent 是否真的能照規範編寫，可讀[實際試寫與審閱](examples/authoring-trial/README.md)：內含自造英文來源、實際中文 LaTeX 章稿、例題、表格解讀、章末完整解答及已修正的問題。這次做過來源對照與算術查核，尚未編譯 PDF；與正式原書驗收分開記錄。
 
 ## Ubuntu與其他平台
 

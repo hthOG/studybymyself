@@ -1,0 +1,52 @@
+% A4 monochrome layout. Compile from the book project root with XeLaTeX.
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{TeX Gyre Termes}
+\IfFontExistsTF{Microsoft JhengHei}{\setCJKmainfont{Microsoft JhengHei}}{
+  \IfFontExistsTF{Noto Serif CJK TC}{\setCJKmainfont{Noto Serif CJK TC}}{
+    \IfFontExistsTF{Noto Sans CJK TC}{\setCJKmainfont{Noto Sans CJK TC}}{
+      \PackageError{studybymyself}{No Traditional Chinese font found}{Install Microsoft JhengHei or Noto CJK TC}
+    }
+  }
+}
+\usepackage[margin=24mm,headheight=16pt]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{booktabs,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+\usepackage{fancyhdr}
+\usepackage[unicode,hidelinks]{hyperref}
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0.35em}
+\linespread{1.18}
+\setlist{topsep=3pt,itemsep=2pt,leftmargin=*}
+\widowpenalty=10000
+\clubpenalty=10000
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{繁體中文自學講義}
+\fancyfoot[C]{\thepage}
+\numberwithin{equation}{section}
+\newtcolorbox{principle}[1]{breakable,colback=white,colframe=black!70,
+  boxrule=0.5pt,arc=0pt,title={#1},colbacktitle=white,coltitle=black,fonttitle=\bfseries}
+\newtcolorbox{examplebox}[1]{breakable,colback=white,colframe=black!75,
+  boxrule=0.7pt,arc=2mm,title={#1},colbacktitle=white,coltitle=black,fonttitle=\bfseries}
+\newtcolorbox{sourcederivation}[1]{breakable,colback=black!7,colframe=black!25,
+  boxrule=0pt,arc=0pt,title={原書推導｜#1},colbacktitle=black!7,coltitle=black,fonttitle=\bfseries}
+\newtcolorbox{aisupplement}[1]{breakable,colback=black!7,colframe=black!25,
+  boxrule=0pt,arc=0pt,title={補充推導（AI 補齊）｜#1},colbacktitle=black!7,coltitle=black,fonttitle=\bfseries}
+\newtcolorbox{correction}[1]{breakable,colback=black!5,colframe=black!65,
+  title={訂正｜#1},colbacktitle=white,coltitle=black,fonttitle=\bfseries}
+\newcommand{\sourcepage}[1]{\par{\small\itshape 對照原書 #1}\par}
+\newcommand{\sourceref}[1]{\sourcepage{#1}}
+
+\begin{document}
+\input{chapter.tex}
+\clearpage
+\input{answers.tex}
+\end{document}
