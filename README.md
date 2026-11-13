@@ -1,6 +1,6 @@
 # studybymyself
 
-將一本英文原文教科書，整理成 **2–4 冊繁體中文自學講義，每冊最多 100 頁**。主要供 Windows 本機 Codex 使用；讀者學過基礎微積分。主代理先解析目錄、平行委派子代理閱讀，最後統一教學內容與 PDF。
+將一本英文原文教科書，整理成 **2–4 冊繁體中文自學講義，每冊最多 100 頁**。可在 Windows 或 Ubuntu 的 Codex 環境使用；讀者學過基礎微積分。主代理先解析目錄、平行委派子代理閱讀，最後統一教學內容與 PDF。
 
 ## 直接交給 Codex
 
@@ -18,6 +18,18 @@
 ```
 
 完整、可重複使用的 [啟動 prompt](prompts/start-book.md) 與 [續作 prompt](prompts/resume-book.md) 已包含講義、分工與檢核要求。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
+
+## Ubuntu與其他平台
+
+Ubuntu24.04+可使用Codex CLI／提供子代理功能的宿主，在repo執行：
+
+```bash
+bash setup.sh --dry-run
+bash setup.sh
+.venv/bin/python scripts/doctor.py --strict
+```
+
+安裝器使用官方apt套件、TeX Live、Noto CJK字型及repo專用venv；只有系統安裝步驟需要sudo。`--check-only`只檢查，`--skip-system`供已備妥系統工具的環境。Ubuntu22.04預設Python不足3.11時須先備妥新版，不自動加入PPA。其他Linux／macOS可手動準備依賴；平台命令、大小寫與搬移流程見[平台指南](docs/PLATFORMS.md)。
 
 ## Windows 一鍵準備
 
@@ -66,6 +78,12 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 
 完整標準在 [Skill](skills/textbook-to-zh-tw-notes/SKILL.md) 與 [撰寫規範](skills/textbook-to-zh-tw-notes/references/pedagogy.md)。原書分配範圍須由子代理完整閱讀；「有閱讀」與「有全部寫入講義」分開計算，次要內容可依頁數預算壓縮／略過，須列出取捨。
 
+## 適度減少用量
+
+詳細規則在[省量與成果重用](skills/textbook-to-zh-tw-notes/references/efficiency.md)。主要避免同區段重複派工、每次重載全部規範、續作重讀已完成章與無關修訂重做驗算。保留首次完整來源閱讀、獨立核驗及最終各冊全頁視覺QA，不改你的子代理模型／effort與15條上限。
+
+主代理維護任務索引，可用reuse.py封存已接受任務的來源／稿件／證據指紋；變更只退回相關依賴，不能用摘要冒充已讀。約2–4個有界批次起跑，依資源調整；更多並行不是更多免費額度。抽字、編譯、頁數與log篩選交本機工具。這些規則尚未做真實原書省量對照，不承諾固定百分比。
+
 ## 流程與檢查
 
 1. 環境檢查 → 書目／目錄／頁碼對照 → 分批任務清單。
@@ -96,7 +114,7 @@ AGENTS.md / agent.md             正式代理規範與相容入口
 .codex/config.toml               分享的子代理設定
 prompts/                        全書啟動、續作、來源子任務、核驗子任務
 skills/textbook-to-zh-tw-notes/   可攜 Skill、參考規範、LaTeX模板與檢查器
-setup.ps1 / scripts/             Windows環境、doctor與測試工具
+setup.ps1 / setup.sh / scripts/  Windows／Ubuntu環境、doctor與測試工具
 docs/                           使用者需求、詳細全書流程與驗證說明
 ```
 
@@ -107,6 +125,7 @@ repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills �
 ```powershell
 .\.venv\Scripts\python.exe scripts\validate_repo.py
 .\.venv\Scripts\python.exe -m unittest discover -s skills\textbook-to-zh-tw-notes\tests -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
 驗證範圍與尚未驗證之處見 [VALIDATION](docs/VALIDATION.md)。這是代理執行規範與輔助工具，沒有聲稱已完成真實原書測試。環境安裝器的實際完整系統安裝另列驗證狀態，不用模擬測試冒充。

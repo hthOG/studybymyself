@@ -34,6 +34,10 @@ description: 將整本英文教科書整理成2–4冊、每冊最多100頁的�
 - 圖表、鎖定、版面與驗收：[LaTeX規範](references/latex-production.md)、[模板](assets/main.tex)。單欄A4、黑白灰、約11pt、適度留白，原圖優先。
 - 分冊、頁限、取捨與續作：[全書契約](references/book-contract.md)。任何壓縮都先回內容核驗，不許在排版時偷改公式。
 
+## 用量與平台
+
+派工／續作先查索引與有效交接，將同區段的閱讀及提取合併，變更只重核受影響依賴；首次完整閱讀、獨立核驗及最終全頁視覺QA不縮減。開始長任務或續作前讀[省量與重用](references/efficiency.md)，其中有任務收據及失效規則；不必每次把整份規範交給所有子代理。Python工具與模板可跨平台；repo的Windows入口為setup.ps1、Ubuntu24.04+入口為setup.sh，依宿主權限準備環境。
+
 ## 輔助工具
 
 ```text

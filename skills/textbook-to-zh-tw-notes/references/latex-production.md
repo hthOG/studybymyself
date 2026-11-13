@@ -50,3 +50,7 @@ latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error -outdi
 ## 跨冊引用與編號
 
 各冊獨立編譯，章稿須明設原書章號（例如章首先 `\setcounter{section}{3}` 再 `\section{...}` 得第4章），並在檔案索引記錄對照；不讓每冊都從第1章重號。各章使用唯一label前綴。跨冊引用以明確的冊／章／原書頁碼文字標示，或另建並核對外部標籤機制；不得留下無法解析的 `\ref`，不得靠硬改公式編號掩蓋錯配。分冊計頁仍包含目錄、空白換頁與章末解答。
+
+## 跨平台與局部修訂
+
+Windows與Ubuntu同用XeLaTeX模板；Ubuntu採TeX Live、Noto CJK TC與TeX Gyre字型。路徑用專案相對路徑、ASCII檔名及大小寫一致的input。先用本機程式篩log、統計頁數，再只讀相關錯誤／差異；不把整冊TeX重貼給排版代理。純版面變動可保留未變的來源與數學證據，但受影響冊重編後仍逐頁核驗，不能沿用舊PDF視覺通過。

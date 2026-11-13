@@ -42,7 +42,10 @@ def validate(root=ROOT):
             continue
         ast.parse(p.read_text(encoding='utf-8'), filename=str(p))
     for required in ('AGENTS.md', 'agent.md', 'README.md', 'setup.ps1', 'prompts/start-book.md',
-                     'prompts/resume-book.md', 'prompts/source-reader.md', 'prompts/verifier.md', 'docs/VALIDATION.md'):
+                     'prompts/resume-book.md', 'prompts/source-reader.md', 'prompts/verifier.md', 'docs/VALIDATION.md',
+                     'setup.sh', '.gitattributes', 'docs/PLATFORMS.md',
+                     'skills/textbook-to-zh-tw-notes/references/efficiency.md',
+                     'skills/textbook-to-zh-tw-notes/scripts/reuse.py'):
         if not (root / required).is_file():
             raise ValueError('Missing package entry: ' + required)
     print(f'Validated Skill YAML, Codex TOML, Python syntax and {checked} relative links.')

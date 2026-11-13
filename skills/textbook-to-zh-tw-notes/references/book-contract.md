@@ -71,3 +71,7 @@ inventory新增`priority`與`priority_reason`，`disposition=compressed`需有ou
 `book.py compile` 先要求teaching檢查及內容鎖一致，依序執行XeLaTeX至少兩輪，保存命令／退出結果，拒絕殘留未定義引用／缺字，檢查實際頁數。最終輪仍有交叉引用重跑警告則停止要求處理，不把舊PDF當成功。每冊重新編譯後執行`prepare-review`，將全部PDF轉為頁圖；主／子代理實際逐頁看過後寫該冊qa.reviewed_pages。
 
 `book.py check`：source/teaching通過、章表與冊配置閉合、2–4冊、每冊實際≤100頁、每冊內容鎖／PDF指紋未變、逐頁視覺記錄齊、沒有未解關鍵問題、selection-log及quality-report存在。頁碼對應、來源語意及推導正確性仍由代理核驗，不能靠JSON欄位自證。
+
+## 任務索引及可續接成果
+
+tasks/index.json由主代理記每個來源／核驗任務的範圍、狀態、交接路徑、收據與依賴；任務收據位於tasks/<id>/reuse-receipt.json。使用量可記usage-log.jsonl，未知值寫null。續作先依[重用規則](efficiency.md)核對有效性，再只處理待補／失效／未完成範圍；這不變更source／teaching／release的必要條件。
