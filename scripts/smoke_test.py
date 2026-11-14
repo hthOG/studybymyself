@@ -25,6 +25,7 @@ def run_smoke(engine):
 \sourcepage{p.1（合成測試標記）}
 \begin{principle}{原理框}中文（English）與數學符號。\end{principle}
 \begin{examplebox}{例題1.1}測試題面。\end{examplebox}
+\begin{selftestbox}{自測（合成測試）}測試練習題框，正式練習提示與完整解答放本章末。\end{selftestbox}
 \begin{equation}\frac{1}{\sqrt{1-x^2}}=1+\frac{x^2}{2}+O(x^4)\label{eq:smoke}\end{equation}
 \begin{sourcederivation}{合成測試}多行公式：
 \begin{align*}a&=b+c\\a-c&=b\end{align*}\end{sourcederivation}

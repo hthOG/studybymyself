@@ -31,3 +31,5 @@
 2026-11-14 經使用者授權安裝並更新 MiKTeX 至 26.5，使用 XeLaTeX 兩次編譯此範例。最初 PDF 發現兩處水平溢出、節標題與例題分頁，以及答案前多餘換頁；調整數值算式斷行、解答標題斷段與分頁，不更動公式語意。來源頁碼註記移除中文字型沒有提供的斜體樣式，保留小字標示。
 
 修正後為 3 頁；所有頁面均已渲染並由主代理檢視，文字、灰框、公式、表格、引用和頁碼可讀，未見裁切或重疊。最終 log 沒有 Missing character、undefined references、multiply defined、Overfull hbox/vbox。中文實際使用 Microsoft JhengHei Regular／Bold，英文使用 TeX Gyre Termes。此紀錄僅涵蓋這份 Windows 試寫 PDF，不延伸為 Ubuntu 或全書驗收。
+
+同日新增 10 張風格範本後，既有習題題面改用 selftestbox；重新兩次編譯仍為 3 頁，最終全部頁面重新渲染並檢視，練習框及其後章末答案可讀、未見裁切或重疊。以 SHA256 對照修改前清單，三個權威 math 檔逐位元一致。新增框沒有改題目條件或答案，也未擴寫來源沒有的題圖。

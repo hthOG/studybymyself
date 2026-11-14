@@ -46,6 +46,7 @@ def validate(root=ROOT):
                      'setup.sh', '.gitattributes', 'docs/PLATFORMS.md',
                      'prompts/write-chapter.md',
                      'skills/textbook-to-zh-tw-notes/references/chapter-authoring.md',
+                     'skills/textbook-to-zh-tw-notes/references/reference-patterns.md',
                      'skills/textbook-to-zh-tw-notes/references/writing-example.md',
                      'skills/textbook-to-zh-tw-notes/references/efficiency.md',
                      'skills/textbook-to-zh-tw-notes/scripts/reuse.py'):

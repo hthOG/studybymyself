@@ -19,6 +19,8 @@
 
 主代理首次編寫章稿前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，依[逐章編寫Prompt](prompts/write-chapter.md)執行；首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)。規劃與來源摘要只是中間產物，正式正文須寫問題／動機、定義／條件、核心推導理由、結果意義、原書題圖解讀及章末複習／解答。逐節依具體退稿標準查缺口，記verification.md並修正文；不以增加稽核標籤或機器pass代替可自學的講解。所有補強仍遵守原書內容邊界及分冊頁限。
 
+首次編寫時另讀[使用者範本寫法](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)，依來源選用公式鏈、局部微積分灰框、模型／圖表比較、完整表與挖空自測、概念到應用題梯度。把選用理由接入既有 outline，不要求每節套滿模式；範本照片是風格資料，不是原書來源或已核正確的教材。不得新增來源外長篇數學教程，或模仿照片的大段空白。
+
 ## 用量與成果重用
 
 派工／續作先查任務索引及有效交接；同來源小節的閱讀、術語、公式與圖表提取合成一個任務。僅對失效或有新疑點的範圍重讀／重核，不重做已接受且未變的成果。首次獨立核驗與各冊最終逐頁視覺QA仍完整執行。詳細依[省量與重用規則](skills/textbook-to-zh-tw-notes/references/efficiency.md)，不能為省量只讀摘要、改為抽樣核驗或變更既有子代理模型設定。
