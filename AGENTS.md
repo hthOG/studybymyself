@@ -17,9 +17,9 @@
 
 ## 正文編寫責任
 
-主代理首次編寫章稿前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，依[逐章編寫Prompt](prompts/write-chapter.md)執行；首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)。規劃與來源摘要只是中間產物，正式正文須寫問題／動機、定義／條件、核心推導理由、結果意義、原書題圖解讀及章末複習／解答。逐節依具體退稿標準查缺口，記verification.md並修正文；不以增加稽核標籤或機器pass代替可自學的講解。所有補強仍遵守原書內容邊界及分冊頁限。
+主代理首次編寫章稿前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，依[逐章編寫Prompt](prompts/write-chapter.md)執行；首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)。使用者提供的完整84頁物理化學講義是風格與組織的起點；本次核心解釋要比範例更詳細，不能把它當頁數目標或上限。逐節補出讀者重建關鍵推理所需的理由與橋接，完整回答章末核心題；具體標準與修補定位見編寫規範，不以增加稽核標籤或機器pass代替可自學的講解。所有補強仍遵守原書內容邊界及分冊頁限。
 
-首次編寫時另讀[使用者範本寫法](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)，依來源選用公式鏈、局部微積分灰框、模型／圖表比較、完整表與挖空自測、概念到應用題梯度。把選用理由接入既有 outline，不要求每節套滿模式；範本照片是風格資料，不是原書來源或已核正確的教材。不得新增來源外長篇數學教程，或模仿照片的大段空白。
+首次編寫時另讀[使用者範本寫法](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)，依來源選用公式鏈、局部微積分灰框、模型／圖表比較、完整表與挖空自測、概念到應用題梯度。把選用理由接入既有 outline，不要求每節套滿模式；先前提供的13張照片只作可選教學模式參考，與完整84頁範例一樣都不是本次原書來源或已核正確教材。不得新增來源外長篇數學教程，或模仿範本的大段空白。
 
 ## 用量與成果重用
 

@@ -2,7 +2,7 @@
 
 請以主代理身分，把使用者提供的整本英文原文書整理成**能讓具備基礎微積分的讀者自學的繁體中文講義**。直接執行到可交付成果，正文要有解釋、推導、題圖解讀及完整解答。規劃、摘要、來源清單、TeX骨架及通過檢查器都只是中間產物，不能當講義完成。
 
-使用者最新要求優先。先讀[AGENTS.md](../AGENTS.md)與[Skill](../skills/textbook-to-zh-tw-notes/SKILL.md)，首次進入正文編寫時**必讀**[逐章編寫操作規範](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，並依[逐章編寫Prompt](write-chapter.md)逐章落實。第一次寫章稿時讀[完整小節示範](../skills/textbook-to-zh-tw-notes/references/writing-example.md)校準解釋密度；示範是自造測試來源，不能拿它的內容或頁碼填進真實原書。其餘參考規範按階段讀入，不必每次把所有檔案送給每個子代理。
+使用者最新要求優先。先讀[AGENTS.md](../AGENTS.md)與[Skill](../skills/textbook-to-zh-tw-notes/SKILL.md)，首次進入正文編寫時**必讀**[逐章編寫操作規範](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，並依[逐章編寫Prompt](write-chapter.md)逐章落實。使用者提供的完整84頁物理化學講義是風格與組織的起點，生成稿的核心解釋需更詳細；不把它當頁數目標。細節與修補依編寫規範的深度基準。第一次寫章稿時讀[完整小節示範](../skills/textbook-to-zh-tw-notes/references/writing-example.md)校準局部推理寫法；示範是自造測試來源，不能拿它的內容或頁碼填進真實原書。其餘參考規範按階段讀入，不必每次把所有檔案送給每個子代理。
 
 ## 本次輸入與既定目標
 
@@ -32,6 +32,8 @@
 檢查Python3.11+、套件、XeLaTeX與中文字體；Windows用setup.ps1，Ubuntu24.04+用setup.sh，其他環境依[平台指南](../docs/PLATFORMS.md)。遵守實際權限；環境未通過實際中文／公式／圖表smoke編譯就如實記限制。
 
 保存書目、版次、原檔SHA-256及雙頁碼。印刷頁碼未知寫null，正文用明示PDF頁序；不可猜固定偏移。依[全書契約](../skills/textbook-to-zh-tw-notes/references/book-contract.md)建立章表、來源範圍、逐頁讀字／看圖紀錄與物件清單。
+
+`book.py init` 後先核讀完整原書TOC並完成 `toc.json`：綁定 `source.json` 的原始PDF SHA-256，為root、每個章節和每個nonchapter exclusion附可回查的 `{file, anchor}` 證據；每個TOC章列來源units，每個原書章映射到book.chapters的`toc_ids`。所有source units須被章節覆蓋或有理由/證據地列為nonchapter exclusions；邊界共頁可重疊，exclusion不可與章重疊。完整原書PDF每一頁都需有unit。上述人工核對完成才將TOC `status` 標 `verified` 並設 `chapters_complete=true`；機器只核帳本一致，不替代目錄轉錄完整性判斷。
 
 派工使用[來源閱讀Prompt](source-reader.md)。任務必含task_id、source_sha256、unit_ids、原書小節、前置依賴、專屬寫入目錄及交付清單。要求交接提供足以寫正文的證據包：原書問題與論證次序、定義／條件、權威公式、推導起終點及重要步驟、原題完整條件、原圖／圖說、術語和精確頁碼。摘要不能容納時存有索引的證據檔，不刪關鍵物件，也不把原文全文回貼主聊天。
 
@@ -89,13 +91,15 @@
 
 來源確實沒有某類物件就記不適用與依據，不創作來源外教材湊清單。必要缺口未補齊時保留needs_fix／unresolved；機器check通過不能替代這一輪正文編輯。再按[核驗Prompt](verifier.md)派獨立核驗，對照指定原頁、稿件與依賴，實際驗算並修正後才填teaching通過。
 
+逐小節開始獨立核驗：一節的來源證據與穩定稿件可用時就交給核驗代理，作者繼續下一節；只傳該節、對應原頁及必要依賴。已通過且指紋未變的小節保留有效核驗，不在 PDF 輸出階段再次通篇做語意審查。可同步在 `build/draft/` 編譯草稿定位版面問題；正式收據編譯與最終逐頁視覺 QA 仍依下節，在教學核驗完成及內容鎖一致後執行。受審檔案粒度與重用方式依[並行與重用規則](../skills/textbook-to-zh-tw-notes/references/efficiency.md#逐節寫作核驗與草稿排版並行)處理。
+
 ## E. 分冊、排版與正式交付
 
-先規劃2冊，重要內容多再增至3或4冊。每冊初估85–90頁留重排空間，預算包括封面、目錄、原圖、正文、例題、各章提示答案與附錄。A核心保留理解鏈，B可合併精簡，C可摘要／略過；所有取捨記來源、理由及影響。若4冊仍超頁，先刪重複／次要與非代表題，不能把核心推導壓成結果表、用小字、加第五冊或把解答移出計頁。
+依原書密度與核心理解鏈規劃2、3或4冊；兩冊只作初估，若清楚保留A級解釋與章末解答會超預算，就增至3或4冊。每冊初估85–90頁留重排空間，預算包括封面、目錄、原圖、正文、例題、各章提示答案與附錄。A核心保留理解鏈，B可合併精簡，C可摘要／略過；所有取捨記來源、理由及影響。若4冊仍超頁，先刪重複／次要與非代表題，再依來源精簡B／C級內容；不能把核心推導壓成結果表、用小字、加第五冊或把解答移出計頁。
 
 沿既有A4單欄、黑白灰、約11pt、24mm頁邊及可讀行距模板；原理細框、例題框線、補充灰框、重要公式右側編號。適度留白，避免大片空頁；不要以縮字掩飾超頁。章號、label與跨冊引用一致。
 
-來源及教學關卡通過→生成各冊layout→建立內容／證據雜湊鎖→編譯各冊並保存命令／log／退出結果→檢查真實PDF頁數→prepare-review→全部頁面轉圖並實際逐頁檢查→book.py check。缺字、未定義引用、溢出、圖被截或公式變形都需修；有PDF不等於本次編譯成功。
+已核TOC／來源及教學關卡通過→生成各冊layout→建立內容／證據雜湊鎖→編譯各冊並保存命令／log／退出結果→檢查真實PDF頁數→prepare-review自動由最終PDF產生並固定逐頁manifest→依頁碼逐頁檢視manifest的PNG並記實際觀察→book.py check。draft render不建立正式QA。缺字、未定義引用、溢出、圖被截或公式變形都需修；有PDF不等於本次編譯成功。
 
 內容修改先記原因、補核受影響依賴、保存舊鎖再重鎖，不能改鎖消警報。重編後舊PDF視覺紀錄作廢，實際全頁重查；每冊實際最多100頁。編譯或核驗被阻擋就明列，不造成功紀錄。
 

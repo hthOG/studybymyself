@@ -3,20 +3,19 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
 import re
 import shutil
-import subprocess
 import sys
 
 import project
+import latex_build
 
 
 def validate_plan(root: Path, book: dict) -> list[str]:
-    errors = []
+    errors = project.validate_toc_plan(root, book)
     source = project.load(root / 'source.json')
     known_units = {u['id'] for u in source['units']}
     chapters, volumes = book.get('chapters', []), book.get('volumes', [])
@@ -85,11 +84,14 @@ def init_book(args):
                                'page_count': 0, 'reviewed_pages': [], 'issues': []}})
     project.save(root / 'book.json', {'schema_version': 1, 'title': '繁體中文自學講義',
                                     'chapters_complete': False, 'chapters': [], 'volumes': volumes})
+    source = project.load(root / 'source.json')
+    project.save(root / 'toc.json', {'schema_version': 1, 'source_sha256': source['sha256'],
+                                    'status': 'pending', 'evidence': [], 'chapters': [], 'exclusions': []})
     project.save(root / 'progress.json', {'stage': 'structure', 'next_section': '',
                  'open_issues': [], 'tasks': {}, 'recommended_effort': 'high', 'actual_effort': None})
     for folder in ('tasks', 'content/chapters', 'content/answers'):
         (root / folder).mkdir(parents=True, exist_ok=True)
-    result.update(next='Inspect TOC only in main-agent context, then dispatch bounded parallel reading tasks',
+    result.update(next='Verify the original TOC in toc.json, reconcile every source unit, then dispatch bounded reading tasks',
                   volumes=args.volumes)
     return result
 
@@ -141,6 +143,18 @@ def find_xelatex():
 
 
 def compile_volumes(root, book):
+    (root / 'build').mkdir(parents=True, exist_ok=True)
+    # Invalidate every previous success before preflight or the first compiler attempt.
+    for v in book['volumes']:
+        latex_build.validate_destinations(root, v['id'], v['qa'])
+    for v in book['volumes']:
+        v['qa'].update(status='pending', page_count=0, reviewed_pages=[],
+                       issues=['New compile attempt; PDF review required'])
+        v['qa'].pop('review_fingerprint', None)
+        v['qa'].pop('preview_manifest', None)
+        latex_build.invalidate_build_record(root, v['id'], v['qa'], 'new compile attempt requested')
+    project.save(root / 'book.json', book)
+
     errors = project.run_checks(root, 'teaching') + validate_plan(root, book)
     if errors:
         raise ValueError('\n'.join(errors))
@@ -149,39 +163,89 @@ def compile_volumes(root, book):
     engine = find_xelatex()
     if not engine:
         raise ValueError('XeLaTeX unavailable; run setup.ps1 and inspect doctor output')
-    (root / 'build').mkdir(exist_ok=True)
+    inventory = project.load(root / 'inventory.json')
     for v in book['volumes']:
         vid = v['id']
-        expected = {'path': f'build/{vid}.pdf', 'log': f'build/{vid}.log',
-                    'build_record': f'build/{vid}.compile.txt'}
-        if any(v['qa'].get(k) != val for k, val in expected.items()):
-            raise ValueError('Compile expects standard build/vol-NN PDF/log/record paths')
-        # Explicitly invalidate old QA before the first attempt, including failed rebuilds.
-        v['qa'].update(status='pending', reviewed_pages=[], issues=['Recompiled; review required'])
-        v['qa'].pop('review_fingerprint', None)
+        required, errors = expected_inputs_for_volume(root, book, v, inventory)
+        if errors:
+            raise ValueError('\n'.join(errors))
+        record = latex_build.compile_target(root, vid, v['qa'], v['layout'], engine, 100, required)
+        v['qa'].update(status='pending', page_count=record['page_count'], reviewed_pages=[],
+                       issues=['New successful compile; PDF review required'], recorder=record['recorder'])
         project.save(root / 'book.json', book)
-        cmd = [engine, '-no-shell-escape', '-interaction=nonstopmode', '-halt-on-error',
-               '-file-line-error', '-output-directory=build', '-jobname=' + vid, v['layout']]
-        record = {'time_utc': datetime.now(timezone.utc).isoformat(), 'command': cmd, 'passes': []}
-        record_path = project.local(root, v['qa']['build_record'])
-        for attempt in range(1, 5):
-            result = subprocess.run(cmd, cwd=root, capture_output=True, timeout=300)
-            record['passes'].append({'pass': attempt, 'returncode': result.returncode,
-                                     'stdout': result.stdout.decode('utf-8', errors='replace')[-12000:]})
-            project.save(record_path, record)
-            if result.returncode:
-                raise ValueError(vid + ': XeLaTeX failed; inspect build record and log')
-            text = project.local(root, v['qa']['log']).read_text(encoding='utf-8', errors='replace')
-            if attempt >= 2 and not re.search(r'Rerun to get|Label\(s\) may have changed', text):
-                break
-        if re.search(r'Rerun to get|Label\(s\) may have changed', text):
-            raise ValueError(vid + ': cross-references did not stabilize after 4 passes')
-        if re.search(r'(?m)^!|Undefined control sequence|Missing character:|(?:Reference|Citation) .* undefined|multiply[- ]defined', text):
-            raise ValueError(vid + ': unresolved LaTeX diagnostics')
-        from pypdf import PdfReader
-        n = len(PdfReader(str(project.local(root, v['qa']['path']))).pages)
-        if n > 100:
-            raise ValueError(f'{vid}: {n} PDF pages exceeds 100; return to editorial planning')
+    errors = validate_book_output_inputs(root, book, inventory)
+    if errors:
+        raise ValueError('\n'.join(errors))
+
+
+def expected_inputs_for_volume(root, book, volume, inventory):
+    chapters = {c['id']: c for c in book.get('chapters', [])}
+    assigned = set(volume.get('chapter_ids', []))
+    expected = {volume.get('layout', '')}
+    errors = []
+    for chapter_id in assigned:
+        chapter = chapters.get(chapter_id)
+        if not chapter:
+            continue
+        expected.update((chapter.get('output', ''), chapter.get('answers', '')))
+    try:
+        # Validate all input paths before a compiler can read from outside the project.
+        for path in expected:
+            if not path:
+                raise ValueError('empty expected input path')
+            project.local(root, path)
+    except ValueError as exc:
+        errors.append('invalid compile input path: ' + str(exc))
+    return sorted(p for p in expected if p), errors
+
+
+def validate_book_output_inputs(root, book, inventory):
+    """Prove every inventory output ref was read by an appropriate compiled volume."""
+    errors = []
+    chapters = {c['id']: c for c in book.get('chapters', [])}
+    volumes = {v['id']: v for v in book.get('volumes', [])}
+    manifests = {}
+    for volume_id, volume in volumes.items():
+        try:
+            receipt = project.load(project.local(root, volume['qa']['build_record']))
+            if receipt.get('status') == 'success':
+                manifests[volume_id] = receipt.get('final_inputs', {}).get('project_inputs', {})
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            continue
+    for item in inventory.get('items', []):
+        if item.get('disposition') not in {'covered', 'compressed'}:
+            continue
+        related_chapters = {c['id'] for c in chapters.values()
+                            if c.get('treatment') != 'omitted'
+                            and set(c.get('units', [])) & set(item.get('units', []))}
+        related_volumes = {v['id'] for v in volumes.values()
+                           if set(v.get('chapter_ids', [])) & related_chapters}
+        if not related_chapters or not related_volumes:
+            errors.append(item.get('id', '<item>') + ': covered output has no retained chapter/volume with matching source units')
+            continue
+        refs = item.get('output_refs', [])
+        if not refs:
+            errors.append(item.get('id', '<item>') + ': covered output has no file reference')
+            continue
+        for ref in refs:
+            try:
+                ref_path = project.local(root, ref['file'])
+                if not ref_path.is_file():
+                    raise ValueError('output reference is missing')
+                matched = False
+                for volume_id in related_volumes:
+                    for relative in manifests.get(volume_id, {}):
+                        compiled_path = project.local(root, relative)
+                        if compiled_path == ref_path:
+                            matched = True
+                            break
+                    if matched:
+                        break
+                if not matched:
+                    errors.append(item.get('id', '<item>') + ': output ref was not read by a compiled volume for its source units: ' + ref['file'])
+            except (TypeError, KeyError, ValueError) as exc:
+                errors.append(item.get('id', '<item>') + ': invalid output ref: ' + str(exc))
+    return errors
 
 
 def prepare_review(root, book):
@@ -190,12 +254,30 @@ def prepare_review(root, book):
         raise ValueError('\n'.join(errors))
     if project.load(root / 'content-lock.json') != project.snapshot(root):
         raise ValueError('Content/evidence differs from lock')
-    from pypdf import PdfReader
+    inventory = project.load(root / 'inventory.json')
+    # Invalidate all old visual QA before rendering any volume; a partial failure cannot retain old reviews.
+    for v in book['volumes']:
+        qa = v['qa']
+        qa.update(status='pending', reviewed_pages=[], issues=['Preparing fresh PDF page previews'])
+        qa.pop('review_fingerprint', None)
+        qa.pop('preview_manifest', None)
+    project.save(root / 'book.json', book)
     for v in book['volumes']:
         pdf = v['qa']
-        pdf.update(status='pending', reviewed_pages=[], issues=[],
-                   page_count=len(PdfReader(str(project.local(root, pdf['path']))).pages),
-                   review_fingerprint=project.pdf_fingerprint(root, pdf))
+        expected, input_errors = expected_inputs_for_volume(root, book, v, inventory)
+        receipt_errors = latex_build.validate_receipt(root, pdf, expected)
+        if input_errors or receipt_errors:
+            raise ValueError('\n'.join(input_errors + [v['id'] + ': ' + e for e in receipt_errors]))
+        receipt = project.load(project.local(root, pdf['build_record']))
+        pdf['recorder'] = receipt['recorder']
+        import pdf_review
+        manifest_path, manifest = pdf_review.create_manifest(root, pdf, v['id'])
+        pdf.update(status='pending', reviewed_pages=[], issues=[], page_count=manifest['page_count'],
+                   preview_manifest=manifest_path)
+        pdf['review_fingerprint'] = project.pdf_fingerprint(root, pdf)
+    output_errors = validate_book_output_inputs(root, book, inventory)
+    if output_errors:
+        raise ValueError('\n'.join(output_errors))
     project.save(root / 'book.json', book)
 
 
@@ -204,16 +286,20 @@ def check_book(root):
     try:
         book = project.load(root / 'book.json')
         errors.extend(validate_plan(root, book))
+        inventory = project.load(root / 'inventory.json')
         if not project.nonempty(root / 'selection-log.md'):
             errors.append('Missing selection-log.md')
         for v in book['volumes']:
             audit = project.Audit(root)
-            audit.release({'pdf': v['qa']})
+            expected, input_errors = expected_inputs_for_volume(root, book, v, inventory)
+            audit.release({'pdf': v['qa']}, expected)
+            audit.errors.extend(input_errors)
             errors.extend(v['id'] + ': ' + e for e in audit.errors)
             from pypdf import PdfReader
             actual = len(PdfReader(str(project.local(root, v['qa']['path']))).pages)
             if not 1 <= actual <= 100:
                 errors.append(v['id'] + ': actual PDF page count must be 1-100, including all front/end matter')
+        errors.extend(validate_book_output_inputs(root, book, inventory))
     except Exception as exc:
         errors.append(f'Invalid/incomplete book record: {type(exc).__name__}: {exc}')
     return errors

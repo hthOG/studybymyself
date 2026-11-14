@@ -1,7 +1,5 @@
 """Synthetic book fixtures exercise page budgets and multi-volume record integrity."""
 import argparse
-import copy
-import importlib.util
 from pathlib import Path
 import sys
 import unittest
@@ -10,10 +8,12 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import book
 import test_project as fixture_module
+import pdf_review
 
 PNG = fixture_module.PNG
 project = fixture_module.project
-synthetic_pdf = fixture_module.synthetic_pdf
+install_synthetic_receipt = fixture_module.install_synthetic_receipt
+latex_build = fixture_module.latex_build
 
 
 class BookTests(unittest.TestCase):
@@ -26,8 +26,10 @@ class BookTests(unittest.TestCase):
             for folder in ('chapters', 'answers'):
                 p = self.root / 'content' / folder
                 p.mkdir(exist_ok=True)
-                (p / f'ch{n:02d}.tex').write_text(f'Synthetic {folder} {n}', encoding='utf-8')
-        chapters = [{'id': f'ch{n:02d}', 'title': f'Synthetic chapter {n}', 'units': [f'u{n:04d}'],
+                body = (r'\section{Synthetic}\label{S1}' + '\n' + r'\input{content/math/E1.tex}') if (n, folder) == (1, 'chapters') else f'Synthetic {folder} {n}'
+                (p / f'ch{n:02d}.tex').write_text(body + '\n', encoding='utf-8')
+        chapters = [{'id': f'ch{n:02d}', 'title': f'Synthetic chapter {n}', 'toc_ids': [f'toc-{n:03d}'],
+                     'units': [f'u{n:04d}'],
                      'treatment': 'full', 'priority_reason': 'Synthetic core dependency',
                      'output': f'content/chapters/ch{n:02d}.tex', 'answers': f'content/answers/ch{n:02d}.tex'}
                     for n in (1, 2)]
@@ -38,11 +40,27 @@ class BookTests(unittest.TestCase):
                            'reviewed_pages': [], 'issues': []}} for n in (1, 2)]
         self.data = {'schema_version': 1, 'chapters_complete': True, 'title': 'Synthetic book',
                      'chapters': chapters, 'volumes': volumes}
+        source = self.fixture.read('source.json')
+        toc_chapters = []
+        for n in (1, 2):
+            unit = f'u{n:04d}'
+            anchor = f'Synthetic source page {n}'
+            toc_chapters.append({'id': f'toc-{n:03d}', 'title': f'Synthetic chapter {n}',
+                                 'locator': f'chapter {n}', 'units': [unit],
+                                 'evidence': [{'file': f'source/text/{unit}.txt', 'anchor': anchor}]})
+        project.save(self.root / 'toc.json', {'schema_version': 1, 'source_sha256': source['sha256'],
+                                               'status': 'verified',
+                                               'evidence': [{'file': 'source/text/u0001.txt',
+                                                             'anchor': 'Synthetic source page 1'}],
+                                               'chapters': toc_chapters, 'exclusions': []})
         project.save(self.root / 'book.json', self.data)
         book.write_layouts(self.root, self.data)
         inventory = self.fixture.read('inventory.json')
         for item in inventory['items']:
             item.update(priority='A', priority_reason='Synthetic core content')
+            item['units'] = ['u0001']
+            item['output_refs'] = [{'file': 'content/chapters/ch01.tex' if item['id'] == 'S1' else 'content/math/E1.tex',
+                                    'anchor': '\\label{' + item['id'] + '}'}]
         self.fixture.write('inventory.json', inventory)
         (self.root / 'selection-log.md').write_text('Synthetic selection record only', encoding='utf-8')
         (self.root / 'quality-report.md').write_text('Synthetic quality record only', encoding='utf-8')
@@ -56,14 +74,26 @@ class BookTests(unittest.TestCase):
 
     def pdf_record(self, volume, count):
         qa = volume['qa']
-        synthetic_pdf(self.root / qa['path'], pages=count)
-        (self.root / qa['log']).write_text('Synthetic clean log, no real TeX compilation', encoding='utf-8')
-        (self.root / qa['build_record']).write_text('Synthetic command record', encoding='utf-8')
-        qa.update(status='pass', page_count=count, reviewed_pages=[])
-        for n in range(1, count + 1):
-            name = f'build/{volume["id"]}-page-{n:03d}.png'
-            (self.root / name).write_bytes(PNG)
-            qa['reviewed_pages'].append({'page': n, 'preview': name, 'notes': 'Synthetic observation only'})
+        inventory = self.fixture.read('inventory.json')
+        expected, errors = book.expected_inputs_for_volume(self.root, self.data, volume, inventory)
+        self.assertEqual(errors, [])
+        # Synthetic FLS input graph mirrors the chapter files included by this volume.
+        trace_inputs = set(expected)
+        for item in inventory['items']:
+            if item['disposition'] not in {'covered', 'compressed'}:
+                continue
+            item_chapters = {chapter['id'] for chapter in self.data['chapters']
+                             if set(chapter['units']) & set(item['units'])}
+            if item_chapters & set(volume['chapter_ids']):
+                trace_inputs.update(ref['file'] for ref in item.get('output_refs', []))
+        install_synthetic_receipt(self.root, volume['id'], qa, volume['layout'], expected,
+                                  pages=count, trace_inputs=sorted(trace_inputs))
+        manifest_path, manifest = pdf_review.create_manifest(self.root, qa, volume['id'])
+        qa.update(status='pass', page_count=manifest['page_count'], preview_manifest=manifest_path,
+                  reviewed_pages=[])
+        for page in manifest['pages']:
+            qa['reviewed_pages'].append({'page': page['page'], 'preview': page['path'],
+                                         'notes': 'Synthetic fixture observation for release-path testing'})
         qa['review_fingerprint'] = project.pdf_fingerprint(self.root, qa)
 
     def save(self):
@@ -71,6 +101,32 @@ class BookTests(unittest.TestCase):
 
     def test_two_complete_volumes_pass(self):
         self.assertEqual(book.check_book(self.root), [])
+        self.assertEqual(project.main(['prepare-pdf-review', str(self.root)]), 2)
+        self.assertEqual(project.main(['compile', str(self.root)]), 2)
+        self.assertEqual(project.main(['check', str(self.root), '--stage', 'release']), 1)
+
+    def test_chapter_and_answer_must_appear_in_its_volume_recorder(self):
+        volume = self.data['volumes'][0]
+        inventory = self.fixture.read('inventory.json')
+        expected, errors = book.expected_inputs_for_volume(self.root, self.data, volume, inventory)
+        self.assertEqual(errors, [])
+        missing_chapter = [name for name in expected if name != 'content/chapters/ch01.tex']
+        install_synthetic_receipt(self.root, volume['id'], volume['qa'], volume['layout'], expected,
+                                  trace_inputs=missing_chapter)
+        self.save()
+        with self.assertRaisesRegex(ValueError, 'required authored input'):
+            book.prepare_review(self.root, self.data)
+
+    def test_inventory_output_ref_must_be_in_appropriate_volume_fls(self):
+        volume = self.data['volumes'][0]
+        inventory = self.fixture.read('inventory.json')
+        expected, errors = book.expected_inputs_for_volume(self.root, self.data, volume, inventory)
+        self.assertEqual(errors, [])
+        install_synthetic_receipt(self.root, volume['id'], volume['qa'], volume['layout'], expected,
+                                  trace_inputs=expected)
+        self.save()
+        with self.assertRaisesRegex(ValueError, 'output ref was not read'):
+            book.prepare_review(self.root, self.data)
 
     def test_fifth_volume_rejected(self):
         self.data['volumes'] *= 3
@@ -107,6 +163,60 @@ class BookTests(unittest.TestCase):
         self.save()
         self.assertTrue(book.check_book(self.root))
 
+    def test_book_plan_rejects_missing_toc_and_unmapped_chapter(self):
+        toc_path = self.root / 'toc.json'
+        original = toc_path.read_bytes()
+        toc_path.unlink()
+        self.assertTrue(any('TOC ledger' in error for error in book.validate_plan(self.root, self.data)))
+        toc_path.write_bytes(original)
+        self.data['chapters'][0]['toc_ids'] = []
+        self.assertTrue(any('toc_ids' in error for error in book.validate_plan(self.root, self.data)))
+
+    def test_book_chapter_units_must_equal_mapped_toc_units(self):
+        self.data['chapters'][0]['units'] = ['u0001', 'u0002']
+        errors = book.validate_plan(self.root, self.data)
+        self.assertTrue(any('units must equal the union' in error for error in errors))
+
+    def test_whole_book_source_units_cover_every_original_pdf_page(self):
+        source = project.load(self.root / 'source.json')
+        source['units'].pop()
+        project.save(self.root / 'source.json', source)
+        errors = project.validate_toc_plan(self.root, self.data)
+        self.assertTrue(any('cover each physical PDF page' in error for error in errors))
+
+    def test_source_units_need_chapter_coverage_or_evidenced_exclusion(self):
+        toc = project.load(self.root / 'toc.json')
+        toc['chapters'][1]['units'] = []
+        project.save(self.root / 'toc.json', toc)
+        self.data['chapters'][1]['units'] = []
+        errors = project.validate_toc_plan(self.root, self.data)
+        self.assertTrue(any('nonchapter exclusions' in error or 'source unit list' in error for error in errors))
+
+        toc['chapters'] = toc['chapters'][:1]
+        toc['exclusions'] = [{'units': ['u0002'], 'reason': 'Front matter outside chapter scope',
+                              'evidence': [{'file': 'source/text/u0002.txt',
+                                            'anchor': 'Synthetic source page 2'}]}]
+        project.save(self.root / 'toc.json', toc)
+        self.data['chapters'] = self.data['chapters'][:1]
+        self.assertEqual(project.validate_toc_plan(self.root, self.data), [])
+
+    def test_shared_chapter_boundary_unit_is_allowed(self):
+        toc = project.load(self.root / 'toc.json')
+        toc['chapters'][0]['units'].append('u0002')
+        project.save(self.root / 'toc.json', toc)
+        self.data['chapters'][0]['units'].append('u0002')
+        self.assertEqual(project.validate_toc_plan(self.root, self.data), [])
+
+    def test_toc_reference_files_are_part_of_the_content_lock_snapshot(self):
+        toc = project.load(self.root / 'toc.json')
+        toc['evidence'] = [{'file': 'source/text/u0001.txt', 'anchor': 'Synthetic source page 1'}]
+        project.save(self.root / 'toc.json', toc)
+        before = project.snapshot(self.root)
+        evidence_path = self.root / 'source/text/u0001.txt'
+        evidence_path.write_text(evidence_path.read_text(encoding='utf-8') + ' modified', encoding='utf-8')
+        after = project.snapshot(self.root)
+        self.assertNotEqual(before['toc_evidence'], after['toc_evidence'])
+
     def test_core_content_cannot_be_budget_omitted(self):
         inv = self.fixture.read('inventory.json')
         inv['items'][1].update(disposition='omitted', omission_basis='editorial_budget', reason='page limit')
@@ -135,8 +245,8 @@ class BookTests(unittest.TestCase):
         self.assertNotIn('content/answers/ch02.tex', text)
 
     def test_failed_rebuild_invalidates_old_pdf_review(self):
-        fake = type('Result', (), {'returncode': 1, 'stdout': b'compile failed'})()
-        with patch.object(book, 'find_xelatex', return_value='fake-xelatex'), patch.object(book.subprocess, 'run', return_value=fake):
+        fake = type('Result', (), {'returncode': 1, 'stdout': b'compile failed', 'stderr': b''})()
+        with patch.object(book, 'find_xelatex', return_value='fake-xelatex'), patch.object(latex_build.subprocess, 'run', return_value=fake):
             with self.assertRaises(ValueError):
                 book.compile_volumes(self.root, self.data)
         saved = project.load(self.root / 'book.json')['volumes'][0]['qa']
@@ -150,12 +260,49 @@ class BookTests(unittest.TestCase):
         for v in saved['volumes']:
             self.assertEqual(v['qa']['status'], 'pending')
             self.assertEqual(v['qa']['reviewed_pages'], [])
+            self.assertTrue((self.root / v['qa']['preview_manifest']).is_file())
         self.assertTrue(book.check_book(self.root))
+
+    def test_prepare_review_generates_receipt_bound_real_png_manifest(self):
+        book.prepare_review(self.root, self.data)
+        saved = project.load(self.root / 'book.json')
+        for volume in saved['volumes']:
+            qa = volume['qa']
+            manifest = project.load(self.root / qa['preview_manifest'])
+            self.assertEqual(manifest['pdf_sha256'], project.digest(self.root / qa['path']))
+            self.assertEqual(manifest['build_record_sha256'], project.digest(self.root / qa['build_record']))
+            self.assertEqual(manifest['page_count'], qa['page_count'])
+            for page in manifest['pages']:
+                png = self.root / page['path']
+                self.assertEqual(png.read_bytes()[:8], pdf_review.PNG_SIGNATURE)
+                self.assertEqual(project.digest(png), page['sha256'])
+            self.assertEqual(qa['reviewed_pages'], [])
+
+    def test_release_rejects_swapped_preview_page_mapping(self):
+        qa = self.data['volumes'][0]['qa']
+        first = qa['reviewed_pages'][0]['preview']
+        second = qa['reviewed_pages'][1]['preview']
+        qa['reviewed_pages'][0]['preview'] = second
+        self.save()
+        errors = book.check_book(self.root)
+        self.assertTrue(any('different preview than its manifest' in error for error in errors))
+        qa['reviewed_pages'][0]['preview'] = first
+
+    def test_release_rejects_replaced_preview_png(self):
+        qa = self.data['volumes'][0]['qa']
+        first = self.root / qa['reviewed_pages'][0]['preview']
+        second = self.root / qa['reviewed_pages'][1]['preview']
+        first.write_bytes(second.read_bytes())
+        errors = book.check_book(self.root)
+        self.assertTrue(any('PNG SHA-256 changed' in error for error in errors))
 
     def test_full_book_intake_only_returns_statistics(self):
         fresh = self.fixture.base / 'new-book'
         result = book.init_book(argparse.Namespace(pdf=str(self.fixture.pdf), out=str(fresh), volumes=2))
         self.assertEqual(result['source_units'], 2)
+        toc = project.load(fresh / 'toc.json')
+        self.assertEqual(toc['status'], 'pending')
+        self.assertEqual(toc['source_sha256'], project.load(fresh / 'source.json')['sha256'])
         self.assertNotIn('Synthetic source page', str(result))
         self.assertTrue(all(u['text_review'] == 'pending' for u in project.load(fresh / 'coverage.json')['units']))
 

@@ -19,7 +19,7 @@
 
 [全書啟動 prompt](prompts/start-book.md)負責從閱讀到交付；[逐章編寫 prompt](prompts/write-chapter.md)直接規定章稿如何寫。寫作前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)：含自造來源、失敗短稿、完整推導／例題及章末解答，示範內容不得移入真實原書。[續作 prompt](prompts/resume-book.md)處理中斷續接。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
 
-想先看 agent 是否真的能照規範編寫，可讀[實際試寫與審閱](examples/authoring-trial/README.md)：內含自造英文來源、實際中文 LaTeX 章稿、例題、表格解讀、章末完整解答及已修正的問題。已做來源對照與算術查核；2026-11-14 補做 Windows XeLaTeX 編譯及全部 3 頁視覺檢查。這是有界試寫，與正式原書驗收分開記錄。
+想先看 agent 是否真的能照規範編寫，可讀[實際試寫與審閱](examples/authoring-trial/README.md)。同一份兩頁自造英文來源另有[詳細版章稿](examples/authoring-trial/detailed/chapter.tex)及[章末完整解答](examples/authoring-trial/detailed/answers.tex)：補清模型條件如何用於推導、積分常數與邊界代入、方向／單位判讀及逐問解題。詳細版已由獨立代理審閱，Windows XeLaTeX 兩次編譯為 5 頁，全部頁面均已渲染並檢視。原有 3 頁試寫及其歷史紀錄保留；這些有界試驗與正式原書全書驗收分開記錄。
 
 ## Ubuntu與其他平台
 
@@ -72,7 +72,7 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 
 ## 講義的寫法
 
-使用者先後提供的 13 張範本已整理為[可選用的教學模式](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)：逐張對應學到的安排，具體說明「公式之間為什麼這樣做」「微積分灰框如何接回原題」「模型與圖形如何比較」「完整表格和挖空自測如何分開」「概念題如何接到情境應用」。後續 3 張另補各種量／分布的區別、公式與空間分圖對照、敘述型現象的機制與表格證據。已接入主代理、來源閱讀與核驗 prompt；照片不隨 repo 發佈，其頁碼與內容也不冒充未來原書。
+完整84頁物理化學講義是使用者提供的風格與組織起點；本次講義的核心解釋與解題應比範例更詳細。它不是頁數目標、深度上限或原書來源，檔案、頁面影像與原文均不納入 repo。先前提供的13張範本照片只是可選模式的補充參考，已整理於[教學模式](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)：包括公式間的理由、微積分灰框接回原題、模型與圖形比較、完整表格和挖空自測、概念題到情境應用，以及不同數學量、公式與空間分圖、敘述型現象的機制與表格證據。照片頁碼不冒充未來原書；詳細核心解釋與頁數取捨標準見[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)。
 
 - 主文採有連貫性的教學敘事，先說問題、動機與物理意義，再給定義、公式和應用；術語首次出現保留英文。
 - 主文保留關鍵推導，原書的進階推導放灰底框；必要時僅補齊簡易缺步並標記「AI 補齊」。不另外編成延伸教材。
@@ -83,7 +83,7 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 - 可查證並修正已確認的原書錯誤，修正旁註原書頁碼、修改依據與參考來源；不擴寫額外教材。
 - A4、單欄、黑白灰、約11pt、適當留白、框線例題、右側公式編號。100頁包含每冊所有頁面；不以小字塞頁。
 
-完整標準在 [Skill](skills/textbook-to-zh-tw-notes/SKILL.md) 與 [撰寫規範](skills/textbook-to-zh-tw-notes/references/pedagogy.md)。原書分配範圍須由子代理完整閱讀；「有閱讀」與「有全部寫入講義」分開計算，次要內容可依頁數預算壓縮／略過，須列出取捨。
+核心深度標準在[逐章編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，教學邊界與分類見[教學規範](skills/textbook-to-zh-tw-notes/references/pedagogy.md)。原書分配範圍須由子代理完整閱讀；「有閱讀」與「有全部寫入講義」分開計算，次要內容可依頁數預算壓縮／略過，須列出取捨。
 
 ## 適度減少用量
 
@@ -93,10 +93,10 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 
 ## 流程與檢查
 
-1. 環境檢查 → 書目／目錄／頁碼對照 → 分批任務清單。
+1. 環境檢查 → `book.py init` → 人工核對完整TOC，填妥並驗證 `toc.json`（含原始PDF SHA、逐章source units及有證據的nonchapter排除；原PDF每頁都須有unit）→ 分批任務清單。
 2. 子代理平行閱讀／搜尋／術語／圖表回報，主代理對帳與規劃2–4冊。
-3. 主代理整合章稿、原書代表題、逐題核驗；每節完成即保存續點。
-4. 鎖定內容 → 各冊編譯 → 實際頁數／逐頁視覺 QA → 必要時回到內容取捨。
+3. 主代理整合章稿、原書代表題、逐題核驗；寫作與已完成小節的語意核驗可並行，每節完成即保存續點。
+4. Teaching 與內容鎖完成後才做正式編譯。編寫期間可在獨立 draft 目錄編譯工作稿；draft PDF 不建立正式成功收據，也不代表可進入 release。正式各冊編譯後做實際頁數／逐頁視覺 QA，必要時回到內容取捨。
 5. 交付所有冊PDF、LaTeX專案、來源對照、選題／刪節清單與品質報告。
 
 常用命令（`<P>` 是本機書籍專案，並非 repo 根）：
@@ -112,7 +112,11 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 .\.venv\Scripts\python.exe skills\textbook-to-zh-tw-notes\scripts\book.py check "<P>"
 ```
 
-`init` 只抽字建檔，不能自動寫出講義或標記已讀；章節結構、分冊規劃、正式內容與 QA 由代理依契約完成。`book.py check` 會讀實際 PDF 並攔下第五冊、超過100頁、章節配置遺漏、內容變動與不完整視覺紀錄。通過腳本不表示物理內容一定正確。
+單章專案使用 `project.py compile`、`project.py prepare-pdf-review` 與 `project.py check --stage release`；若專案有 `book.json`，單 PDF 編譯、準備審查及 release 入口會拒絕執行，必須使用上述 `book.py` 多冊流程。
+
+正式編譯會以 XeLaTeX recorder (`.fls`) 記錄實際讀入檔案，使用新的隔離輸出目錄，至少完成兩次穩定編譯，並將成功／失敗狀態、鎖檔、版面、輸入清單及 PDF／log／recorder 雜湊寫入 build receipt。`prepare-review` 驗證receipt後，會從最終PDF以PyMuPDF本機render逐頁PNG及manifest，記錄PDF/receipt SHA、頁數、渲染參數、頁碼對應與每圖SHA，並清空舊notes；release核對全部雜湊與映射，不重render，仍要求人實際逐頁記觀察，機器不自動pass。普通 `render.py pdf` 是draft，只輸出not_reviewed圖。缺少toc ledger或舊receipt/preview格式時fail closed；補核TOC、保留有效teaching核驗、重鎖並重編／prepare，不必重讀未變且已核驗的原書內容。雜湊偵測一般檔案變更，不是抵禦使用者重寫所有紀錄的加密簽章。
+
+`init` 只抽字建檔，不能自動寫出講義或標記已讀；章節結構、分冊規劃、正式內容與 QA 由代理依契約完成。`book.py check` 會讀實際PDF並攔下未核TOC、章映射／來源unit覆蓋缺漏、第五冊、超過100頁、未被實際編譯讀入的內容落點、內容變動與不完整預覽manifest/視覺紀錄。TOC是否完整、教學內容是否正確及頁面實際品質仍需人工核對。
 
 ## repo 結構
 
@@ -137,4 +141,4 @@ repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills �
 
 驗證範圍與尚未驗證之處見 [VALIDATION](docs/VALIDATION.md)。這是代理執行規範與輔助工具，沒有聲稱已完成真實原書測試。環境安裝器的實際完整系統安裝另列驗證狀態，不用模擬測試冒充。
 
-原書與工作資料放在 repo 外或被忽略的 `inputs/`、`books/`。提供的八張照片只用來提取教學／版面偏好，未收入本 repo。上游方法與 MIT 授權見 [來源說明](skills/textbook-to-zh-tw-notes/references/provenance.md)。
+原書與工作資料放在 repo 外或被忽略的 `inputs/`、`books/`。提供的完整講義與範本照片只用來提取教學／版面偏好，未收入本 repo。上游方法與 MIT 授權見 [來源說明](skills/textbook-to-zh-tw-notes/references/provenance.md)。

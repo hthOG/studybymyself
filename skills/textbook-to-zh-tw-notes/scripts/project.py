@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -259,6 +260,8 @@ class Audit:
         self.review_record(qa.get("semantic_review", {}), "semantic review")
         if qa.get("unresolved", []):
             self.error("unresolved content/semantic issues")
+        if (self.root / "book.json").exists():
+            self.errors.extend(validate_toc_plan(self.root, load(self.root / "book.json")))
         return qa
 
     def review_record(self, value, context):
@@ -267,12 +270,16 @@ class Audit:
         for ref in value.get("evidence", []):
             self.ref(ref, context)
 
-    def release(self, qa):
+    def release(self, qa, expected_inputs=None):
         locked = self.read("content-lock.json")
         if locked != snapshot(self.root):
             self.error("locked content or source evidence changed; return to content verification")
         self.file("quality-report.md")
         pdf = qa.get("pdf", {})
+        from latex_build import validate_receipt
+        self.errors.extend(validate_receipt(self.root, pdf, expected_inputs))
+        import pdf_review
+        self.errors.extend(pdf_review.validate_manifest(self.root, pdf))
         if pdf.get("review_fingerprint") != pdf_fingerprint(self.root, pdf):
             self.error("PDF, log, layout or lock changed since prepare-pdf-review; recompile/review")
         for key in ("path", "log", "build_record"):
@@ -309,13 +316,223 @@ class Audit:
                 self.error("unresolved LaTeX error, missing glyph or broken reference in log")
 
 
+def validate_toc_plan(root: Path, book: dict) -> list[str]:
+    """Check the human-verified whole-book TOC ledger and exact source-unit accounting."""
+    root = root.resolve()
+    errors = []
+    try:
+        source = load(root / "source.json")
+        toc = load(root / "toc.json")
+    except (OSError, ValueError, TypeError) as exc:
+        return [f"whole-book TOC ledger missing/invalid; migrate by recording and verifying the source TOC: {exc}"]
+
+    source_sha = source.get("sha256")
+    if toc.get("schema_version") != 1:
+        errors.append("unsupported toc.json schema_version")
+    if toc.get("status") != "verified":
+        errors.append("source TOC must be human checked and marked status=verified")
+    if not source_sha or toc.get("source_sha256") != source_sha:
+        errors.append("toc.json source_sha256 must match the original PDF SHA-256 in source.json")
+    if book.get("chapters_complete") is not True:
+        errors.append("chapters_complete must be true after the verified TOC is reconciled")
+
+    units = source.get("units", [])
+    source_ids = [u.get("id") for u in units if isinstance(u, dict)]
+    if not source_ids or len(source_ids) != len(set(source_ids)):
+        errors.append("whole-book source unit IDs must be nonempty and unique")
+    known_units = set(source_ids)
+
+    # A whole-book source ledger must represent every physical page of the original PDF.
+    if source.get("kind") != "pdf":
+        errors.append("whole-book TOC reconciliation requires the original PDF source")
+    else:
+        try:
+            from pypdf import PdfReader
+            original = Path(source.get("path", ""))
+            if not original.is_file():
+                raise ValueError("original PDF is missing")
+            if digest(original) != source_sha:
+                raise ValueError("original PDF SHA-256 changed")
+            actual_page_count = len(PdfReader(str(original)).pages)
+            page_numbers = [u.get("pdf_page") for u in units if isinstance(u, dict)]
+            if source.get("pdf_total_pages") != actual_page_count:
+                errors.append("source.json pdf_total_pages differs from the original PDF")
+            if (any(type(n) is not int for n in page_numbers)
+                    or len(page_numbers) != actual_page_count
+                    or set(page_numbers) != set(range(1, actual_page_count + 1))):
+                errors.append("whole-book source.units must cover each physical PDF page 1..N exactly once")
+        except Exception as exc:
+            errors.append(f"cannot verify complete source PDF page coverage: {type(exc).__name__}: {exc}")
+
+    source_evidence_files = {}
+    for unit in units:
+        if not isinstance(unit, dict):
+            continue
+        for key, kind in (("text_path", "text"), ("preview_path", "preview")):
+            relative = unit.get(key)
+            if isinstance(relative, str):
+                source_evidence_files[relative] = kind
+
+    def evidence_rows(rows, context):
+        if not isinstance(rows, list) or not rows:
+            errors.append(context + ": traceability evidence is required")
+            return
+        for row in rows:
+            if (not isinstance(row, dict) or not isinstance(row.get("file"), str)
+                    or not isinstance(row.get("anchor"), str) or not row["anchor"].strip()):
+                errors.append(context + ": evidence must contain file and anchor")
+                continue
+            kind = source_evidence_files.get(row["file"])
+            if kind is None:
+                errors.append(context + ": evidence must cite an original source unit text or page preview")
+                continue
+            try:
+                path = local(root, row["file"])
+                if not nonempty(path):
+                    errors.append(context + ": evidence file missing/empty: " + row["file"])
+                elif kind == "text" and row["anchor"] not in path.read_text(encoding="utf-8-sig"):
+                    errors.append(context + ": evidence anchor not found in " + row["file"])
+            except (OSError, ValueError, UnicodeError) as exc:
+                errors.append(context + ": invalid evidence reference: " + str(exc))
+
+    evidence_rows(toc.get("evidence"), "TOC root")
+    toc_chapters = toc.get("chapters", [])
+    toc_ids = [c.get("id") for c in toc_chapters if isinstance(c, dict)]
+    if not toc_ids or len(toc_ids) != len(set(toc_ids)):
+        errors.append("verified TOC chapter IDs must be nonempty and unique")
+    toc_by_id = {}
+    chapter_units = set()
+    for chapter in toc_chapters:
+        if not isinstance(chapter, dict):
+            errors.append("TOC chapter entries must be objects")
+            continue
+        cid = chapter.get("id")
+        if not isinstance(cid, str) or not cid.strip():
+            errors.append("TOC chapter entry needs a stable id")
+            continue
+        toc_by_id[cid] = chapter
+        if not isinstance(chapter.get("title"), str) or not chapter["title"].strip():
+            errors.append(cid + ": TOC title required")
+        if not isinstance(chapter.get("locator"), str) or not chapter["locator"].strip():
+            errors.append(cid + ": source TOC locator required")
+        evidence_rows(chapter.get("evidence"), cid + " TOC chapter")
+        values = chapter.get("units", [])
+        if (not isinstance(values, list) or not values
+                or any(not isinstance(u, str) for u in values)
+                or len(values) != len(set(values))):
+            errors.append(cid + ": TOC chapter needs a nonempty unique source unit list")
+            values = []
+        unknown = set(values) - known_units
+        if unknown:
+            errors.append(cid + ": TOC chapter contains unknown source units: " + ", ".join(sorted(unknown)))
+        chapter_units.update(set(values) & known_units)
+
+    exclusions = toc.get("exclusions", [])
+    excluded_units = set()
+    for index, exclusion in enumerate(exclusions):
+        context = f"TOC exclusion {index + 1}"
+        if not isinstance(exclusion, dict):
+            errors.append(context + ": entry must be an object")
+            continue
+        if not isinstance(exclusion.get("reason"), str) or not exclusion["reason"].strip():
+            errors.append(context + ": explicit nonchapter exclusion reason required")
+        evidence_rows(exclusion.get("evidence"), context)
+        values = exclusion.get("units", [])
+        if (not isinstance(values, list) or not values
+                or any(not isinstance(u, str) for u in values)
+                or len(values) != len(set(values))):
+            errors.append(context + ": exclusion needs a nonempty unique source unit list")
+            values = []
+        current = set(values)
+        if current & chapter_units:
+            errors.append(context + ": exclusions cannot overlap TOC chapter units")
+        if current & excluded_units:
+            errors.append(context + ": source units cannot be excluded more than once")
+        unknown = current - known_units
+        if unknown:
+            errors.append(context + ": exclusion contains unknown source units: " + ", ".join(sorted(unknown)))
+        excluded_units.update(current & known_units)
+    unaccounted = known_units - chapter_units - excluded_units
+    if unaccounted:
+        errors.append("source units absent from TOC chapter coverage need evidenced nonchapter exclusions: "
+                      + ", ".join(sorted(unaccounted)))
+
+    book_chapters = book.get("chapters", [])
+    mapped_counts = {cid: 0 for cid in toc_by_id}
+    seen_chapter_ids = set()
+    for chapter in book_chapters:
+        if not isinstance(chapter, dict):
+            errors.append("book.chapters entries must be objects")
+            continue
+        chapter_id = chapter.get("id", "<chapter>")
+        if chapter_id in seen_chapter_ids:
+            errors.append("duplicate book chapter IDs")
+        seen_chapter_ids.add(chapter_id)
+        toc_refs = chapter.get("toc_ids", [])
+        if (not isinstance(toc_refs, list) or not toc_refs
+                or any(not isinstance(cid, str) for cid in toc_refs)
+                or len(toc_refs) != len(set(toc_refs))):
+            errors.append(str(chapter_id) + ": book chapter must map one or more unique toc_ids")
+            toc_refs = []
+        expected_units = set()
+        for toc_id in toc_refs:
+            if toc_id not in toc_by_id:
+                errors.append(str(chapter_id) + ": unknown TOC chapter mapping " + str(toc_id))
+                continue
+            mapped_counts[toc_id] += 1
+            expected_units.update(toc_by_id[toc_id].get("units", []))
+        values = chapter.get("units", [])
+        if (not isinstance(values, list) or any(not isinstance(u, str) for u in values)
+                or len(values) != len(set(values))):
+            errors.append(str(chapter_id) + ": book chapter units must be a unique source unit list")
+            values = []
+        actual_units = set(values)
+        unknown = actual_units - known_units
+        if unknown:
+            errors.append(str(chapter_id) + ": chapter contains unknown source units: " + ", ".join(sorted(unknown)))
+        if actual_units != expected_units:
+            errors.append(str(chapter_id) + ": units must equal the union of its mapped TOC chapters")
+    for toc_id, count in mapped_counts.items():
+        if count != 1:
+            errors.append(toc_id + f": expected exactly one book.chapters mapping, found {count}")
+    return errors
+
+
 def snapshot(root: Path):
     files = sorted(p for p in (root / "content").rglob("*") if p.is_file())
     # Local input files are locked as well; symlink escapes are rejected.
+    evidence_names = list(EVIDENCE_FILES)
+    if (root / "book.json").exists():
+        evidence_names.append("toc.json")
+    evidence = {}
+    for name in evidence_names:
+        path = local(root, name)
+        evidence[name] = digest(path) if path.is_file() else None
+    toc_evidence = {}
+    toc_path = root / "toc.json"
+    if (root / "book.json").exists() and toc_path.is_file():
+        try:
+            toc = load(toc_path)
+            cited = set()
+            evidence_groups = ([toc.get("evidence", [])]
+                               + [entry.get("evidence", []) for entry in toc.get("chapters", [])]
+                               + [entry.get("evidence", []) for entry in toc.get("exclusions", [])])
+            for rows in evidence_groups:
+                if isinstance(rows, list):
+                    cited.update(row.get("file") for row in rows
+                                 if isinstance(row, dict) and isinstance(row.get("file"), str))
+            for name in sorted(cited):
+                try:
+                    path = local(root, name)
+                    toc_evidence[name] = digest(path) if path.is_file() else None
+                except ValueError:
+                    toc_evidence[name] = None
+        except (OSError, ValueError, TypeError, AttributeError):
+            toc_evidence = {"<invalid-toc-record>": None}
     result = {"schema_version": 1,
             "content": {p.relative_to(root).as_posix(): digest(local(root, p.relative_to(root).as_posix()))
                         for p in files},
-            "evidence": {name: digest(local(root, name)) for name in EVIDENCE_FILES},
+            "evidence": evidence,
             "source_assets": {p.relative_to(root).as_posix(): digest(local(root, p.relative_to(root).as_posix()))
                               for p in sorted((root / "source").rglob("*")) if p.is_file()},
             "teaching_review": {key: load(root / "qa.json")[key]
@@ -327,14 +544,22 @@ def snapshot(root: Path):
                                'volumes': [{k: v[k] for k in ('id', 'chapter_ids', 'planned_pages', 'layout')}
                                            for v in book.get('volumes', [])]}
         result['evidence']['selection-log.md'] = digest(root / 'selection-log.md')
+        result['toc_evidence'] = toc_evidence
     return result
 
 
 def pdf_fingerprint(root: Path, pdf):
+    manifest = pdf.get("preview_manifest")
+    manifest_hash = None
+    if isinstance(manifest, str) and manifest:
+        path = local(root, manifest)
+        if path.is_file():
+            manifest_hash = digest(path)
     return {"lock": digest(root / "content-lock.json"),
             "layout": {p.relative_to(root).as_posix(): digest(local(root, p.relative_to(root).as_posix()))
                        for p in sorted((root / "layout").rglob("*")) if p.is_file()},
-            "artifacts": {key: digest(local(root, pdf[key])) for key in ("path", "log", "build_record")}}
+            "artifacts": {key: digest(local(root, pdf[key])) for key in ("path", "log", "build_record")},
+            "preview_manifest": {"path": manifest, "sha256": manifest_hash}}
 
 
 def run_checks(root: Path, stage: str):
@@ -344,10 +569,37 @@ def run_checks(root: Path, stage: str):
         if stage in {"teaching", "release"}:
             qa = audit.teaching(inventory)
         if stage == "release":
-            audit.release(qa)
+            if (root / "book.json").exists():
+                audit.error("Whole-book release must use book.py check; single-PDF release is disabled")
+            else:
+                audit.release(qa, standalone_expected_inputs(inventory))
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
         audit.error(f"invalid/incomplete project record: {type(exc).__name__}: {exc}")
     return audit.errors
+
+
+def standalone_expected_inputs(inventory):
+    expected = {"layout/main.tex", "content/chapter.tex", "content/answers.tex"}
+    for item in inventory.get("items", []):
+        if item.get("disposition") in {"covered", "compressed"}:
+            for ref in item.get("output_refs", []):
+                if isinstance(ref, dict) and isinstance(ref.get("file"), str):
+                    expected.add(ref["file"])
+    return sorted(expected)
+
+
+def find_xelatex():
+    found = shutil.which("xelatex")
+    if found:
+        return found
+    if os.name == "nt":
+        for variable, suffix in (("LOCALAPPDATA", "Programs/MiKTeX/miktex/bin/x64/xelatex.exe"),
+                                 ("APPDATA", "MiKTeX/miktex/bin/x64/xelatex.exe"),
+                                 ("ProgramFiles", "MiKTeX/miktex/bin/x64/xelatex.exe")):
+            base = os.environ.get(variable)
+            if base and (Path(base) / suffix).is_file():
+                return str(Path(base) / suffix)
+    return None
 
 
 def main(argv=None):
@@ -357,7 +609,7 @@ def main(argv=None):
     init.add_argument("--pdf", required=True)
     init.add_argument("--pages", required=True, help="1-based physical PDF pages")
     init.add_argument("--out", required=True, help="fresh project directory")
-    for command in ("check", "lock", "prepare-pdf-review"):
+    for command in ("check", "lock", "prepare-pdf-review", "compile"):
         command_parser = sub.add_parser(command)
         command_parser.add_argument("project")
         if command == "check":
@@ -369,6 +621,36 @@ def main(argv=None):
         else:
             root = Path(args.project).resolve()
             stage = args.stage if args.command == "check" else "teaching"
+            if args.command in {"prepare-pdf-review", "compile"} and (root / "book.json").exists():
+                raise ValueError("Whole-book projects must use book.py compile/prepare-review/check; single-PDF entrypoint is disabled")
+            if args.command == "compile":
+                from latex_build import compile_target, invalidate_build_record, validate_destinations
+                qa = load(root / "qa.json")
+                pdf = qa["pdf"]
+                validate_destinations(root, "main", pdf)
+                invalidate_build_record(root, "main", pdf, "new compile attempt requested")
+                pdf.update(status="pending", page_count=0, reviewed_pages=[], issues=["New compile attempt; PDF review required"])
+                pdf.pop("review_fingerprint", None)
+                pdf.pop("preview_manifest", None)
+                save(root / "qa.json", qa)
+                errors = run_checks(root, "teaching")
+                if errors:
+                    raise ValueError("\n".join(errors))
+                if load(root / "content-lock.json") != snapshot(root):
+                    raise ValueError("Content/evidence differs from reviewed lock; verify and lock before compiling")
+                engine = find_xelatex()
+                if not engine:
+                    raise ValueError("XeLaTeX unavailable; run setup.ps1 and inspect doctor output")
+                inventory = load(root / "inventory.json")
+                record = compile_target(root, "main", pdf, "layout/main.tex", engine, 100,
+                                        standalone_expected_inputs(inventory))
+                pdf.update(status="pending", page_count=record["page_count"], reviewed_pages=[],
+                           issues=["New successful compile; PDF review required"], recorder=record["recorder"])
+                save(root / "qa.json", qa)
+                result = {"status": "pass", "action": "compile", "page_count": record["page_count"],
+                          "scope": "successful XeLaTeX build receipt recorded; semantic and visual reviews remain required"}
+                print(json.dumps(result, ensure_ascii=True, indent=2))
+                return 0
             errors = run_checks(root, stage)
             if errors:
                 print(json.dumps({"status": "fail", "stage": stage, "errors": errors}, ensure_ascii=True, indent=2))
@@ -381,10 +663,22 @@ def main(argv=None):
             elif args.command == "prepare-pdf-review":
                 if load(root / "content-lock.json") != snapshot(root):
                     raise ValueError("content/evidence differs from lock; verify before compiling")
-                from pypdf import PdfReader
+                from latex_build import validate_receipt
                 qa = load(root / "qa.json")
                 pdf = qa["pdf"]
-                pdf["page_count"] = len(PdfReader(str(local(root, pdf["path"]))).pages)
+                pdf.update(status="pending", reviewed_pages=[], issues=["Preparing fresh PDF page previews"])
+                pdf.pop("review_fingerprint", None)
+                pdf.pop("preview_manifest", None)
+                save(root / "qa.json", qa)
+                receipt_errors = validate_receipt(root, pdf, standalone_expected_inputs(load(root / "inventory.json")))
+                if receipt_errors:
+                    raise ValueError("\n".join(receipt_errors))
+                receipt = load(local(root, pdf["build_record"]))
+                pdf["recorder"] = receipt["recorder"]
+                import pdf_review
+                manifest_path, manifest = pdf_review.create_manifest(root, pdf, "main")
+                pdf["page_count"] = manifest["page_count"]
+                pdf["preview_manifest"] = manifest_path
                 pdf["review_fingerprint"] = pdf_fingerprint(root, pdf)
                 pdf["status"] = "pending"
                 pdf["reviewed_pages"] = []

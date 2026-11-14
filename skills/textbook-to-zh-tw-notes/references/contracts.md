@@ -105,22 +105,29 @@ category：`section/concept/equation/derivation/example/figure/table/exercise`�
   },
   "semantic_review": {"status": "pending", "evidence": []},
   "pdf": {"status": "pending", "path": "build/main.pdf", "log": "build/main.log",
-    "build_record": "build/compile.txt", "page_count": 0, "reviewed_pages": [], "issues": []},
+    "build_record": "build/compile.txt", "recorder": "build/compile.fls",
+    "page_count": 0, "preview_manifest": null, "reviewed_pages": [], "issues": []},
   "unresolved": []
 }
 ```
 
 每個 evidence 項是 `{"file":"content/chapter.tex","anchor":"\\label{某實際標記}"}`；也可指向 verification.md 的詳細審查紀錄。semantic_review 記原文回查、AI 標籤、引用語意及圖表解讀核驗。全部完成後 status 改 pass。
 
-PDF reviewed_pages 的每項為 `{"page":1,"preview":"build/previews/page-1.png","notes":"實際檢查內容"}`；實際看過才可登記。其 page_count 以實際 PDF 確認；log 是最後編譯 log，compile.txt 保存命令、時間、結果及 warning 處理。所有 PDF 頁都需覆蓋，不以首尾抽樣代替。
+PDF reviewed_pages 的每項為 `{"page":1,"preview":"build/previews/<run-id>/page-001.png","notes":"實際檢查內容"}`；實際看過才可登記。其 `preview_manifest` 指向由最終PDF本機render產生的 `manifest.json`；release核對PDF／receipt SHA、頁碼映射、PNG格式與每頁SHA，notes仍由人實際填寫。`render.py pdf`產生的draft圖不建立正式QA。所有PDF頁都需覆蓋，不以首尾抽樣代替。
 
-本次成功編譯後先執行 `prepare-pdf-review`，由實際 PDF 填 page_count，保存 `review_fingerprint`，清空先前逐頁紀錄。此指紋含 PDF／log／編譯紀錄／版面／內容鎖，變更後要重編譯並重做相應視覺檢查。指紋只保證審查對象沒變，不能證明編譯的因果關係，compile.txt 必須忠實記錄本次成功編譯。pypdf 是 init、prepare-pdf-review 及 release 讀取 PDF 所需依賴，其餘結構檢查使用 Python 標準函式庫。
+單章正式流程為 `project.py compile <project>` → `project.py prepare-pdf-review <project>` → 實際逐頁檢查 → `project.py check <project> --stage release`。`compile`必須先有通過teaching的內容鎖，並使用新隔離輸出目錄及XeLaTeX `-recorder`；每一輪都需新產生PDF／log／FLS，至少兩輪且輔助輸出穩定，記錄成功、失敗或逾時狀態。`build/compile.txt`是含結構化JSON的成功receipt，`build/compile.fls`是本次實際輸入軌跡。只有compile可以產生成功receipt。
+
+`prepare-pdf-review`會驗證receipt、鎖檔、版面、所有實際輸入及輸出雜湊後，由受支持的本機PyMuPDF renderer直接從最終PDF產生每頁PNG與manifest，再填page_count、保存manifest／`review_fingerprint`並清空先前逐頁紀錄。manifest記PDF與成功receipt的SHA、頁數、renderer/參數，以及頁碼、PNG路徑與每圖SHA。release以當前PDF／receipt及PNG逐項核對manifest，不重render；改PDF、重編、manifest、預覽圖或頁碼對應都須重新prepare並逐頁審閱。prepare不會由現有PDF／log／任意文字紀錄製造「編譯成功」，也不自動通過視覺QA。舊receipt格式需先真正重編；已有效teaching核驗仍可沿用，不要求重讀全書。`review_fingerprint`偵測審查對象漂移，receipt連結編譯與實際檔案輸入；檔案雜湊不是抵禦同時改寫所有ledger的加密簽章。pypdf是init、compile、prepare及release讀取PDF頁數所需依賴；正式預覽使用PyMuPDF。
+
+FLS的`PWD`與相對／絕對`INPUT`／`OUTPUT`會安全正規化。專案內所有實際輸入都逐檔雜湊，包含作者放在`build/`中的檔案；只有位於本次隔離暫存目錄、且被本次XeLaTeX `OUTPUT`記錄的已知編譯輔助輸入會被排除。專案外輸入必須位於引擎可定位的TeX distribution/TEXMF、MiKTeX格式／設定快取或OS字型根目錄，並保留路徑及雜湊供prepare/release重新確認；任意外部`.tex`需先納入專案。release亦確認`layout/main.tex`、正文／答案及每個covered/compressed output ref真的在FLS輸入清單中；TeX註解或條件略過不能算實際引用。
+
+若專案含`book.json`，`project.py compile`、`prepare-pdf-review`及`check --stage release`都拒絕執行，須改用`book.py compile`、`prepare-review`及`check`。整本書teaching也要求已核TOC ledger；`toc.json`記錄原始PDF SHA、每個預期章節對應來源units及有證據的非章節排除。全部source units須被章節覆蓋或明示排除，章間界頁可重疊；全書source units還必須覆蓋原PDF每個實體頁面。`toc.json`及其root/chapter/exclusion證據檔都納入內容鎖。單PDF路徑不能冒充多冊驗收。
 
 ## 關卡與續作
 
 - source 關卡：原檔雜湊正確、範圍核實、全部來源單位的讀字／看圖紀錄與證據檔齊、無未解來源問題、清單完整且定位核實。這時來源清單可以仍是 pending。
 - teaching 關卡：source 條件，加上所有項目已 covered、合規 compressed 或合法列明略過、七項成果及語意檢查有證據、無未解內容問題、章稿／答案／核驗紀錄存在。
-- lock：只有 teaching 通過才建立 content 樹的逐檔 SHA-256，以及 source/coverage/inventory/verification 的當時雜湊。鎖檔不能自動覆蓋；修內容時先另存舊鎖，記修正原因、完成受影響內容核驗，再執行 lock。
+- lock：只有 teaching 通過才建立 content 樹的逐檔 SHA-256，以及source/coverage/inventory/verification的當時雜湊；全書另鎖`toc.json`、章映射及TOC root/chapter/exclusion evidence引用檔。鎖檔不能自動覆蓋；修內容時先另存舊鎖，記修正原因、完成受影響內容核驗，再執行lock。
 - release 關卡：teaching 條件，加上來源證據與 content 沒變、PDF／log／編譯紀錄存在、PDF 的實際頁數與逐頁視覺紀錄一致、無未解 PDF 問題、quality-report.md 完成。
 
 `progress.json` 至少保存 `stage/next_section/open_issues`；每個小節與每次回退立即更新。來源換版 → 來源核對；推導／題面／圖義改動 → 內容核驗；只改字體／寬度 → 重編譯及 PDF QA。先前通過的狀態不能無條件繼承。

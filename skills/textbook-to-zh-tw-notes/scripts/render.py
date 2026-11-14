@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Render bounded source units or final volume PDFs; output paths, never book text."""
+"""Render bounded source units or draft PDF previews; output paths, never book text.
+
+The ``pdf`` command is a draft-only convenience. Formal PDF QA previews and their
+manifest are generated from the current successful receipt by prepare-review.
+"""
 import argparse
 import json
 from pathlib import Path
@@ -35,7 +39,7 @@ def main(argv=None):
     pdf.add_argument('--out', required=True)
     args = parser.parse_args(argv)
     try:
-        import fitz
+        import pymupdf as fitz
         images = []
         if args.command == 'source':
             root = Path(args.project).resolve()
@@ -59,9 +63,15 @@ def main(argv=None):
             with fitz.open(args.path) as doc:
                 for n, page in enumerate(doc, 1):
                     out = root / f'page-{n:03d}.png'
+                    if out.is_symlink():
+                        raise ValueError('refusing to replace a symlinked draft preview: ' + str(out))
                     page.get_pixmap(dpi=160).save(out)
                     images.append(str(out))
-        print(json.dumps({'rendered': len(images), 'paths': images, 'review_status': 'not_reviewed'}, ensure_ascii=True))
+        result = {'rendered': len(images), 'paths': images, 'review_status': 'not_reviewed'}
+        if args.command == 'pdf':
+            result.update(artifact_kind='draft_previews', formal_manifest=None,
+                          note='Use the supported prepare-review command for receipt-bound PDF QA previews')
+        print(json.dumps(result, ensure_ascii=True))
         return 0
     except Exception as exc:
         print(json.dumps({'status': 'error', 'error': str(exc)}, ensure_ascii=True))

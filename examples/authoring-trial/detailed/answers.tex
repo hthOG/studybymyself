@@ -1,0 +1,34 @@
+\subsection*{Problem 7.1 提示}
+保持 \(k\)、\(A\)、兩面溫度和正方向不變，只把 \(L\) 換成 \(0.040\,\mathrm m\)。先用新的厚度求溫度梯度與熱通量，再乘以截面積；最後用新、舊總熱傳率相除。注意題目給的仍是兩個面溫度，不要把總熱傳率與熱通量的單位混用。
+
+\subsection*{Problem 7.1 參考解答（原書習題；AI 求解）}
+\sourcepage{S2（合成來源）p.202，Problem 7.1}
+
+已知 \(L=0.040\,\mathrm m\)、\(A=0.50\,\mathrm{m^2}\)、\(k=0.80\,\mathrm{W\,m^{-1}K^{-1}}\)，兩面溫差仍為 \(T_H-T_C=10\,\mathrm K\)；溫差以 K 表示時，其數值等於攝氏溫度差的數值。模型條件、座標及正方向與 Example 7.1 相同，故式 \eqref{eq:7-2} 的斜率仍可由兩端溫度相減後除以厚度求得：
+\[
+\frac{dT}{dx}=\frac{(20-30)\,\mathrm K}{0.040\,\mathrm m}
+=-250\,\mathrm{K\,m^{-1}}.
+\]
+
+\textbf{(a) 新熱通量。} 代入式 \eqref{eq:7-1}：
+\[
+q_{x,\mathrm{new}}
+=-(0.80\,\mathrm{W\,m^{-1}K^{-1}})
+(-250\,\mathrm{K\,m^{-1}})
+=200\,\mathrm{W\,m^{-2}}.
+\]
+它為正，表示熱量仍沿 \(+x\) 由熱面流向冷面。
+
+\textbf{(b) 新總熱傳率。} 使用整個截面積：
+\[
+\dot Q_{\mathrm{new}}
+=(0.50\,\mathrm{m^2})(200\,\mathrm{W\,m^{-2}})
+=100\,\mathrm W.
+\]
+
+\textbf{(c) 新舊總熱傳率之比。} Example 7.1 的總熱傳率是 \(200\,\mathrm W\)，所以
+\[
+\frac{\dot Q_{\mathrm{new}}}{\dot Q_{\mathrm{Example\ 7.1}}}
+=\frac{100\,\mathrm W}{200\,\mathrm W}=0.50.
+\]
+這與式 \eqref{eq:7-3} 相符：在 \(k\)、\(A\) 和溫差不變時，總熱傳率與 \(1/L\) 成正比；厚度加倍使總熱傳率減半。熱通量與總熱傳率單位不同，是因為前者按面積計，後者是整個截面的速率：\(\mathrm{W\,m^{-2}}\times\mathrm{m^2}=\mathrm W\)。本題的數值也符合兩者的關係，\((0.50\,\mathrm{m^2})(200\,\mathrm{W\,m^{-2}})=100\,\mathrm W\)。

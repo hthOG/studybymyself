@@ -2,7 +2,7 @@
 
 主代理提供task_id、source_sha256、指定來源units／原頁、稿件與解答檔、input公式／圖檔及前置定義依賴、待解疑點、專屬tasks/<task_id>/路徑。只寫本任務目錄，不改正式content、總帳或鎖。首次核驗指定內容須獨立完成；修訂複核依差異與受影響依賴，無關章的有效結果不重做。
 
-先讀[編寫規範的退稿標準](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md#11-每節退稿標準與編輯複核)。對照指定原頁與稿件，不能只讀作者自評或機器pass。
+先讀[編寫規範的深度基準](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md#解釋深度基準)及[退稿標準](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md#11-每節退稿標準與編輯複核)。對照指定原頁與稿件，不能只讀作者自評或機器pass；指出具體段落／公式／題目問項的缺失橋接與來源支持的修補方向，不以狀態或「增加解釋」代替。
 
 ## 分項核驗
 

@@ -14,6 +14,8 @@
 
 ## 範本框樣與頁面節奏
 
+頁首預設留白，不印固定的「繁體中文自學講義」或其他通用標語。若使用頁首，只放當前單元名稱，並在切換單元時更新；沒有合適名稱就留白。留白時不保留空的頁首橫線，頁尾頁碼照常保留。
+
 `principle` 用於重要定義／有條件判準；必要條件與結論一起顯示。`examplebox` 是題後立即詳解的示範題；`selftestbox` 是先給題面、提示與答案在本章末的自測／練習，標清原題號、來源和答案位置。`sourcederivation` 與 `aisupplement` 分別保留原書推導及必要簡易 AI 補步，淺灰底；微積分小教室沿用這兩種框，不能讓標題掩蓋來源差異。具體選用見[使用者範本寫法](reference-patterns.md)。
 
 圖表與解讀文字相鄰，原題所需圖片跟題面接續。比較表優先選能讀清行列的寬度與分頁方式，正式表不留待填空格；挖空練習另標。中文段落搭配少量粗體與編號公式，不模仿範本的大段無用途空白；避免節標題／來源標記與其後例題分頁。原圖顏色可保留，本文與框樣黑白灰，另查灰階可辨識性，不直接改寫原圖資料。
@@ -26,13 +28,17 @@
 
 檢查實際安裝的繁體中文字體。模板預設 `Microsoft JhengHei`，若不存在，改為現有的 Noto Serif CJK TC 等字體；不把簡體字型名稱當作繁體字型保證。使用 fontspec/xeCJK 時不混用舊式 inputenc/fontenc 設定。字體缺字 warning 必須檢查實際輸出。
 
-編譯可用參數陣列呼叫，例如從專案根：
+草稿版面檢視可用參數陣列呼叫，例如從專案根：
 
 ```text
-latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error -outdir=build layout/main.tex
+latexmk -xelatex -no-shell-escape -interaction=nonstopmode -halt-on-error -file-line-error -outdir=build/draft-preview layout/main.tex
 ```
 
-或依序執行至少兩次 XeLaTeX，直到目錄與交叉引用穩定。不能只因存在舊 PDF 就認定本次編譯成功；檢查退出碼、時間戳、來源版本與 log。保存實際命令與結果。不要使用會自行安裝系統套件或啟用 shell-escape 的上游腳本。
+教學寫作期間，後續小節可以在作者撰寫時繼續進行；已完成小節可立即保存並完成語意核驗，不需等整本寫完才核驗。若需提早看版面，可用獨立draft輸出目錄編譯工作稿；draft不寫入正式build receipt、不改release狀態，也不能用於最終QA。
+
+正式證據編譯只在teaching通過且內容鎖確認後進行：單章用`project.py compile`，全書用`book.py compile`。入口使用`-recorder`及全新隔離暫存目錄；每次XeLaTeX invocation前會刪除本輪應產生的PDF／log／FLS，保留`.aux`／`.toc`等參照資料。每輪都要重新輸出成功，至少兩輪且參照資料、輸入指紋穩定；編譯失敗或逾時會把最新receipt改成failed，不能沿用舊PDF。對照實際`.fls`讀入清單、所有局部依賴雜湊、內容鎖、版面及PDF／log／recorder輸出後，才產生成功receipt。未定義引用在第一輪可以隨重跑修正；最後穩定輪仍有未解引用、缺字或其他錯誤即失敗。
+
+專案內所有實際輸入都追蹤，包含`build/`的作者檔。只有本次隔離暫存目錄內、由FLS明確記錄為XeLaTeX `OUTPUT`且屬已知編譯輔助檔的輸入才視為產物。外部TeX系統／字型依賴限定於由實際引擎定位的distribution/TEXMF、MiKTeX格式或設定快取、OS字型根目錄，並一併雜湊和重新核對；任意外部`.tex`或其他未設定外部輸入會讓正式編譯失敗。不得用時間戳單獨證明成功，也不要使用會自行安裝系統套件或啟用shell-escape的上游腳本。
 
 ## 長文排版
 
@@ -46,12 +52,12 @@ latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error -outdi
 
 1. 比對雜湊：content 所有檔案及來源核驗證據一致；新增或刪除公式檔同樣要攔下。
 2. 編譯 log：無錯誤、缺字、未定義命令／引用、重複 label；overfull/underfull 等警告逐項判斷，實際溢出要修。
-3. 執行 prepare-pdf-review，再將所有 PDF 頁轉為約 140–180 dpi PNG，在可閱讀尺寸逐頁查看。先檢查全頁版面，再放大長式與圖表；接觸表只能輔助導航，不能取代細看。
+3. 全書執行 `book.py prepare-review`，單章執行 `project.py prepare-pdf-review`；命令會從本次最終PDF自動產生PyMuPDF逐頁PNG與SHA-256 manifest，並清空舊notes。依manifest頁碼逐頁查看，在可閱讀尺寸先檢查全頁版面，再放大長式與圖表；draft render或接觸表只能輔助導航，不能建立或取代正式QA。
 4. 逐頁檢查：中文字與英文字、所有負號／分式／向量、圖軸／箭頭／圖說、來源標記、裁切／溢出／重疊、跨頁推導、提示與答案分離、頁碼與目錄。
 5. 回看原頁：重要公式、例題數值及圖表關係與原文一致，AI 補充仍有標籤；來源對照的原頁碼不是講義頁碼。
 6. 寫 `qa.json` 的實際檢查紀錄及 `quality-report.md`，全書執行book.py check；各冊全部頁面都須通過，不使用舊單PDF的release冒充多冊通過。
 
-編譯失敗或關鍵內容待核實時可交工作稿，但標明「未完成」與具體缺口，不給正式完成宣告。遇到可自行修正的錯誤持續處理；只有缺失原書頁、不可讀符號或必要外部條件才請使用者補充。
+編譯失敗或關鍵內容待核實時可交工作稿，但標明「未完成」與具體缺口，不給正式完成宣告。遇到可自行修正的錯誤持續處理；只有缺失原書頁、不可讀符號或必要外部條件才請使用者補充。 
 
 ## 跨冊引用與編號
 
