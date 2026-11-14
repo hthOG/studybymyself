@@ -85,9 +85,37 @@ $texBin = Split-Path -Parent $engine
 $miktex = Join-Path $texBin 'miktex.exe'
 if (Test-Path -LiteralPath $miktex) {
     Invoke-Checked $miktex @('packages', 'update-package-database')
-    $packages = @('fontspec', 'xecjk', 'geometry', 'amsmath', 'amsfonts', 'graphics', 'xcolor',
-        'tools', 'booktabs', 'enumitem', 'tcolorbox', 'pgf', 'fancyhdr', 'hyperref', 'tex-gyre')
-    Invoke-Checked $miktex (@('packages', 'install') + $packages)
+    # A downloaded basic installer may contain an older kernel than current CJK packages.
+    & $miktex packages check-update
+    $updateCode = $LASTEXITCODE
+    if ($updateCode -eq 100) {
+        Invoke-Checked $miktex @('packages', 'update')
+    } elseif ($updateCode -ne 0) {
+        throw "MiKTeX update check failed with exit code $updateCode"
+    }
+    $packages = @('fontspec', 'ctex', 'xecjk', 'geometry', 'amsmath', 'amsfonts', 'graphics', 'xcolor', 'colortbl',
+        'latex-tools', 'booktabs', 'enumitem', 'tcolorbox', 'tikzfill', 'pdfcol', 'listings', 'listingsutf8',
+        'ltxcmds', 'infwarerr', 'pdftexcmds', 'stringenc', 'kvsetkeys', 'kvdefinekeys', 'pdfescape',
+        'hycolor', 'nameref', 'kvoptions', 'intcalc', 'bitset', 'rerunfilecheck', 'refcount', 'gettitlestring',
+        'uniquecounter', 'bigintcalc',
+        'pgf', 'fancyhdr', 'hyperref', 'tex-gyre')
+    # MiKTeX returns an error when install includes an already installed package.
+    # Query the inventory once and only install missing packages, including on reruns.
+    $packageStates = @{}
+    & $miktex packages list --template '{id}|{isInstalled}' | ForEach-Object {
+        $parts = $_ -split '\|'
+        if ($parts.Length -eq 2) { $packageStates[$parts[0]] = $parts[1] }
+    }
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot query MiKTeX package inventory' }
+    foreach ($package in $packages) {
+        if (-not $packageStates.ContainsKey($package)) { throw "Unknown MiKTeX package: $package" }
+        $installed = $packageStates[$package]
+        if ($installed -eq 'true') { continue }
+        if ($installed -ne 'false') { throw "Unexpected MiKTeX package state for ${package}: $installed" }
+        Invoke-Checked $miktex @('packages', 'install', $package)
+    }
+    # Initialize explicitly so first compilation cannot wait on a hidden setup dialog.
+    Invoke-Checked $miktex @('--disable-installer', 'formats', 'build', 'xelatex', '--engine', 'xetex')
 }
 
 Invoke-Checked $venvPython @((Join-Path $repoRoot 'scripts\smoke_test.py'), '--xelatex', $engine)

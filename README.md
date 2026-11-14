@@ -19,7 +19,7 @@
 
 [全書啟動 prompt](prompts/start-book.md)負責從閱讀到交付；[逐章編寫 prompt](prompts/write-chapter.md)直接規定章稿如何寫。寫作前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)：含自造來源、失敗短稿、完整推導／例題及章末解答，示範內容不得移入真實原書。[續作 prompt](prompts/resume-book.md)處理中斷續接。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
 
-想先看 agent 是否真的能照規範編寫，可讀[實際試寫與審閱](examples/authoring-trial/README.md)：內含自造英文來源、實際中文 LaTeX 章稿、例題、表格解讀、章末完整解答及已修正的問題。這次做過來源對照與算術查核，尚未編譯 PDF；與正式原書驗收分開記錄。
+想先看 agent 是否真的能照規範編寫，可讀[實際試寫與審閱](examples/authoring-trial/README.md)：內含自造英文來源、實際中文 LaTeX 章稿、例題、表格解讀、章末完整解答及已修正的問題。已做來源對照與算術查核；2026-11-14 補做 Windows XeLaTeX 編譯及全部 3 頁視覺檢查。這是有界試寫，與正式原書驗收分開記錄。
 
 ## Ubuntu與其他平台
 
@@ -42,6 +42,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 安裝流程會檢查 Python 3.11+，需要時透過 WinGet 安裝 Python；建立 repo 專用 `.venv` 並安裝 Python 套件。缺少 XeLaTeX 時透過 WinGet 安裝 MiKTeX，使用 repo 專用 TeX 專案實際測試中文、數學及繪圖套件；既有 MiKTeX 的缺少套件也會透過其套件管理器補齊。優先使用現有 XeLaTeX，不改使用者的 Codex 全域設定。下載與系統安裝仍可能要求 Windows／Codex 批准；遭拒時回報失敗，不繞過。
+
+MiKTeX 流程先檢查核心／套件更新，避免舊基本安裝版搭配新中文套件；一次查詢套件狀態，只安裝缺少項目，包含灰框及交叉引用的間接依賴，並明確建立 XeLaTeX 格式檔。2026-11-14 已在使用者授權的 Windows 實機補齊環境，成功重跑安裝入口、嚴格環境檢查及中文模板編譯；乾淨電腦的完整 WinGet 流程尚未另測。
 
 無 WinGet／Python、網路被限制或使用者既有 TeX 發行版缺少套件時，腳本給出具體失敗步驟，不能假報已備妥。安裝 Python／MiKTeX 後若 PATH 尚未更新，腳本會重讀使用者與系統 PATH。可預覽安裝動作或只查環境：
 

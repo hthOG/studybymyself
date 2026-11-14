@@ -36,6 +36,9 @@ def run_smoke(engine):
 '''
     (work / 'main.tex').write_text(source, encoding='utf-8')
     cmd = [engine, '-no-shell-escape', '-interaction=nonstopmode', '-halt-on-error', 'main.tex']
+    if (Path(engine).parent / 'miktex.exe').is_file():
+        # Setup installs dependencies explicitly; missing packages must fail visibly.
+        cmd.insert(1, '-disable-installer')
     records = []
     for _ in range(2):
         result = subprocess.run(cmd, cwd=work, capture_output=True, timeout=300)

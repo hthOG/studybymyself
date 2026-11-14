@@ -22,6 +22,8 @@
 \input{math/ch7-rate.tex}
 固定 $k$、面積與溫差時，厚度加倍使總傳熱率減半；固定梯度而增加面積，總傳熱率增大，通量不變。若兩面溫度相同，溫度分布為常數且通量為零。若有內部產熱或 $k$ 隨位置改變，上述推導不能原樣使用。接下來用來源例題將關係轉成數值。
 
+% Keep this example's heading, source marker and question on the same page.
+\newpage
 \subsection{例題與表格}\label{ch7:example}
 \sourcepage{合成測試來源 S2，p.202}
 \begin{examplebox}{例題 7.1（S2 p.202）}
@@ -34,8 +36,10 @@
 \frac{dT}{dx}=\frac{T_C-T_H}{L}=\frac{-10\,\mathrm K}{0.020\,\mathrm m}=-500\,\mathrm{K\,m^{-1}},
 \]
 \[
-q_x=-k\frac{dT}{dx}=-(0.80)(-500)=400\,\mathrm{W\,m^{-2}},\qquad
-\dot Q=Aq_x=(0.50\,\mathrm{m^2})(400\,\mathrm{W\,m^{-2}})=200\,\mathrm W.
+\begin{aligned}
+q_x&=-k\frac{dT}{dx}=-(0.80)(-500)=400\,\mathrm{W\,m^{-2}},\\
+\dot Q&=Aq_x=(0.50\,\mathrm{m^2})(400\,\mathrm{W\,m^{-2}})=200\,\mathrm W.
+\end{aligned}
 \]
 因此（a）通量為 $400\,\mathrm{W\,m^{-2}}$，沿 $+x$，由熱面朝冷面；（b）總傳熱率為 $200\,\mathrm W$。核對：梯度為負且 $k>0$，傅立葉定律給正通量；面積乘通量的單位為瓦特。這些數值與 S2 報告的結果一致。
 \end{examplebox}

@@ -45,7 +45,22 @@ Windows安裝腳本以PowerShell語法解析與WhatIf檢查控制流程；WhatIf
 
 實際以獨立子代理讀取兩頁自造英文來源 S2 並寫成中文章稿，主代理對照來源審閱，查核推導、選法理由、例題、表格、章末提示和完整解答。初稿的公式存放與章號缺漏已回饋、修正並加入正式規範。另以精確分數重算例題／練習及邊界值，檢查入口所有 input 與標籤引用；詳細證據見[試寫入口](../examples/authoring-trial/README.md)及[主代理審閱](../examples/authoring-trial/parent-review.md)。
 
-repo 的 YAML、TOML、Python 語法及相對文件連結、官方 Skill 格式驗證另於打包前重跑。這些檢查和有界寫作試驗都不等於真實原書全書驗收；本次仍未執行 XeLaTeX 或 PDF 全頁視覺檢查，未測量省量效果。
+repo 的 YAML、TOML、Python 語法及相對文件連結、官方 Skill 格式驗證另於打包前重跑。這些檢查和有界寫作試驗都不等於真實原書全書驗收；初次試寫時未執行 XeLaTeX 或 PDF 全頁視覺檢查，後續補驗如下。未測量省量效果。
+
+## Windows 安裝與實際 PDF 補驗
+
+2026-11-14 經使用者授權，使用其下載的基本 MiKTeX 25.12 安裝檔，SHA256 與 Microsoft WinGet 發佈目錄一致；以目前使用者範圍安裝，再更新至 MiKTeX 26.5。首次實測發現既有套件重裝會中止、`tools` 應為 MiKTeX 的 `latex-tools`，以及中文、灰框與交叉引用間接依賴不足；已修正 setup.ps1，明確建格式檔，並讓 MiKTeX 的 smoke_test 停用隱藏的自動補裝對話框，缺項直接回報。
+
+| 本次項目 | 實際結果 |
+|---|---|
+| Python 與環境 | repo 專用 venv 已安裝全部 requirements，doctor --strict 通過 |
+| Windows setup.ps1 | 修正後在已補齊的實機重跑成功，含更新檢查、已安裝套件略過、格式檔建立、兩次 smoke 編譯及 doctor；PowerShell AST 與 WhatIf 亦通過 |
+| 共用中文／數學／TikZ 模板 | XeLaTeX 兩次編譯為 1 頁，渲染後目視檢查完成 |
+| S2 實際試寫 | 兩次編譯，修正後為 3 頁，全部 3 頁均渲染並目視檢查；沒有缺字、未解析引用、重複標籤或水平／垂直溢出訊息 |
+| 字型 | PDF 使用 Microsoft JhengHei Regular／Bold、TeX Gyre Termes 及數學字型；來源頁碼註記取消字型未提供的斜體樣式 |
+| 鏡像連線 | 自動鏡像出現 SSL 錯誤，未略過驗證；在該使用者的 MiKTeX 設定中改用實測可連線的 CTAN Illinois HTTPS 鏡像後成功 |
+
+以上是在本機實際安裝、逐項排錯後的整合測試，不能宣稱乾淨 Windows 的完整 WinGet 一鍵流程已從零通過。沒有重新測試 Ubuntu，也沒有真實原書全書、原圖或冊頁數驗收。歷史表格保留初版當時狀態，以本節記錄本次新增證據。
 
 ## 安裝與執行依據
 
