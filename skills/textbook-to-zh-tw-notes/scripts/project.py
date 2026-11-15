@@ -11,6 +11,8 @@ import re
 import shutil
 import sys
 
+import math_audit
+
 REQUIREMENTS = (
     "concepts", "derivations", "deep_analysis", "examples", "figures_tables",
     "bilingual_terms", "review_exercises_answers",
@@ -260,6 +262,7 @@ class Audit:
         self.review_record(qa.get("semantic_review", {}), "semantic review")
         if qa.get("unresolved", []):
             self.error("unresolved content/semantic issues")
+        self.errors.extend(math_audit.validate(self.root, self.read("source.json"), inventory))
         if (self.root / "book.json").exists():
             self.errors.extend(validate_toc_plan(self.root, load(self.root / "book.json")))
         return qa
@@ -537,6 +540,7 @@ def snapshot(root: Path):
                               for p in sorted((root / "source").rglob("*")) if p.is_file()},
             "teaching_review": {key: load(root / "qa.json")[key]
                                 for key in ("requirements", "semantic_review")}}
+    result["math_audit"] = math_audit.snapshot_files(root)
     if (root / 'book.json').exists():
         book = load(root / 'book.json')
         result['book_plan'] = {'chapters_complete': book.get('chapters_complete'),

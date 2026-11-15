@@ -28,3 +28,7 @@
 各物件可記pass／needs_fix／unresolved；有核心缺口時整體needs_followup，不能因JSON齊或編譯成功填ready。PDF視覺任務另記實際看過的每頁、頁圖路徑、公式／字形／圖表／溢出觀察。重編後所有最終頁重新檢查；純版面改動可保留未變的來源與數學證據。
 
 回傳差異、問題及證據索引，不重貼全文。主代理負責整合與修改；你不能自行重鎖、覆寫權威公式或宣告全書可發行。
+
+## 逐項公式證據
+
+首次核驗另讀[公式核驗規範](../skills/textbook-to-zh-tw-notes/references/formula-verification.md)。先獨立由原頁和前提重建再比較作者稿；不同任務上下文可用同模型，不能作者自評充當獨立核驗。逐項提供source_visual、recompute及適用的dimension/limit/domain證據，非數學概念題改做conceptual核對，供主代理合入math-audit.json。核原頁及約定優先於記憶公式；候選不得當定案。保存實際程式及輸出並固定證據版本；未執行不可填pass。

@@ -66,3 +66,7 @@ latexmk -xelatex -no-shell-escape -interaction=nonstopmode -halt-on-error -file-
 ## 跨平台與局部修訂
 
 Windows與Ubuntu同用XeLaTeX模板；Ubuntu採TeX Live、Noto CJK TC與TeX Gyre字型。路徑用專案相對路徑、ASCII檔名及大小寫一致的input。先用本機程式篩log、統計頁數，再只讀相關錯誤／差異；不把整冊TeX重貼給排版代理。純版面變動可保留未變的來源與數學證據，但受影響冊重編後仍逐頁核驗，不能沿用舊PDF視覺通過。
+
+## 最終成品文字殘留檢查
+
+對每冊最終PDF執行 `python <skill>/scripts/pdf_text_audit.py <最終PDF>`，協助找候選訂正、待核、占位及內部交接殘留。退出碼0表示沒有命中已知字詞、1表示有待人工判讀項目、2表示工具錯誤；無可抽文字會列待看圖，不能當乾淨成品。這是文字啟發式，可能有誤報或漏報，不能代替逐頁視檢或公式核驗。逐個回到實際頁，修復未完成工作並重編；有合理教學用途則在品質報告記具體頁碼與理由，不單純刪字消警報。

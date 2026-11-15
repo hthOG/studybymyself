@@ -133,3 +133,7 @@ FLS的`PWD`與相對／絕對`INPUT`／`OUTPUT`會安全正規化。專案內所
 `progress.json` 至少保存 `stage/next_section/open_issues`；每個小節與每次回退立即更新。來源換版 → 來源核對；推導／題面／圖義改動 → 內容核驗；只改字體／寬度 → 重編譯及 PDF QA。先前通過的狀態不能無條件繼承。
 
 靜態腳本是檢查紀錄與檔案的工具，不是內容裁判。不得為了通過檢查偽造 evidence、刪掉來源項目、把 pending 改 omitted，或寫入未實際執行的測試結果。
+
+## 公式核驗ledger（現行teaching必檢）
+
+新增專案根math-audit.json，格式、遷移及失效規則依[公式核驗規範](formula-verification.md)。凡covered/compressed的equation、derivation、example、exercise均須逐項覆蓋；來源辨識、獨立核算及適用檢查有真實證據。teaching自動檢查來源SHA、作者／核驗任務區分、output_refs稿件及證據指紋、錨點、未解狀態和合法路徑。snapshot另固定ledger及所列稿件／證據現況。工具不判數學真偽、不執行ledger指令、不自動填pass；舊專案補足有效核驗資料才正式交付。

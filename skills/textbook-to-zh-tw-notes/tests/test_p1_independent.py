@@ -147,6 +147,9 @@ class IndependentP1Acceptance(unittest.TestCase):
         inventory = fixture.read("inventory.json")
         inventory["items"][1]["output_refs"] = [{"file": "content/hidden.tex", "anchor": r"\label{E1}"}]
         fixture.write("inventory.json", inventory)
+        ledger = fixture.read("math-audit.json")
+        ledger["entries"][0]["reviewed_files"]["content/hidden.tex"] = project.digest(fixture.root / "content/hidden.tex")
+        fixture.write("math-audit.json", ledger)
         fixture.write("content-lock.json", project.snapshot(fixture.root))
         expected = project.standalone_expected_inputs(inventory)
         observed = sorted(name for name in expected if name != "content/hidden.tex")

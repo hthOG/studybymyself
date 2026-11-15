@@ -1,5 +1,29 @@
 # studybymyself
 
+## OpenCode／Muse Spark：以 Codex 講義為品質基準
+
+現行標準是使用者認可的四冊 Codex《黑洞物理導論》，不融合 vol 版本的優點。具體寫法與有頁碼的觀察在[品質基準](skills/textbook-to-zh-tw-notes/references/codex-quality-baseline.md)；原PDF、頁面圖與全文不隨repo上傳。舊84頁講義／照片僅保留為可選歷史參考，與下方舊說明衝突時依現行基準。
+
+OpenCode使用者從[宿主指南與可貼上提示](docs/OPENCODE.md)開始，再依[逐節執行提示](prompts/opencode-book.md)製作。在repo根啟動，原有AGENTS.md與新增opencode.json載入共用規範；原生技能入口在.opencode/skills，實際內容仍只有skills/下的一份。沿用已選的Muse Spark，不改供應商、金鑰、權限或Codex設定，也不猜模型ID。
+
+本次新增三個具體支援：
+
+- [完整局部成稿](examples/codex-style/lesson.md)：用自造來源展示問題、定義、逐步推導、結果解讀與完整練習答案，並有[可執行復算](examples/codex-style/verify.py)。不把它冒充原書內容。
+- [公式核驗規範](skills/textbook-to-zh-tw-notes/references/formula-verification.md)與math_audit.py：原頁辨識、獨立重算、約定／量綱／極限／域、訂正與下游重核，逐項綁定正文及證據版本，已接入teaching及內容鎖。
+- pdf_text_audit.py：從最終PDF協助找未決訂正、占位、內部交接與未完成核驗文字，逐項回到實際頁人工判讀。
+
+常用檢查（先依下方方式準備repo本機Python環境）：
+
+```text
+python examples/codex-style/verify.py
+python skills/textbook-to-zh-tw-notes/scripts/math_audit.py init <書籍專案>
+python skills/textbook-to-zh-tw-notes/scripts/math_audit.py check <書籍專案>
+python skills/textbook-to-zh-tw-notes/scripts/pdf_text_audit.py <最終PDF>
+```
+
+math_audit init在選題、正文落點及covered/compressed清單建立後執行，只產生pending模板，不覆寫舊檔。舊專案需補真實有效的核驗紀錄；工具通過只表示紀錄完整且版本對應，不代表公式已被機器證明正確。未完成原頁辨識、獨立核算或最終逐頁看圖時不能宣稱完成。測試狀態見[VALIDATION](docs/VALIDATION.md)；尚未以Muse Spark實機跑完整本書，不能承諾零錯。
+
+
 將一本英文原文教科書，整理成 **2–4 冊繁體中文自學講義，每冊最多 100 頁**。可在 Windows 或 Ubuntu 的 Codex 環境使用；讀者學過基礎微積分。主代理先解析目錄、平行委派子代理閱讀，最後統一教學內容與 PDF。
 
 ## 直接交給 Codex
@@ -72,7 +96,7 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 
 ## 講義的寫法
 
-完整84頁物理化學講義是使用者提供的風格與組織起點；本次講義的核心解釋與解題應比範例更詳細。它不是頁數目標、深度上限或原書來源，檔案、頁面影像與原文均不納入 repo。先前提供的13張範本照片只是可選模式的補充參考，已整理於[教學模式](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)：包括公式間的理由、微積分灰框接回原題、模型與圖形比較、完整表格和挖空自測、概念題到情境應用，以及不同數學量、公式與空間分圖、敘述型現象的機制與表格證據。照片頁碼不冒充未來原書；詳細核心解釋與頁數取捨標準見[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)。
+現行品質依四冊Codex黑洞講義；完整84頁物理化學講義及照片僅保留作可選歷史參考。它不是頁數目標、深度上限或原書來源，檔案、頁面影像與原文均不納入 repo。先前提供的13張範本照片只是可選模式的補充參考，已整理於[教學模式](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)：包括公式間的理由、微積分灰框接回原題、模型與圖形比較、完整表格和挖空自測、概念題到情境應用，以及不同數學量、公式與空間分圖、敘述型現象的機制與表格證據。照片頁碼不冒充未來原書；詳細核心解釋與頁數取捨標準見[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)。
 
 - 主文採有連貫性的教學敘事，先說問題、動機與物理意義，再給定義、公式和應用；術語首次出現保留英文。
 - 主文保留關鍵推導，原書的進階推導放灰底框；必要時僅補齊簡易缺步並標記「AI 補齊」。不另外編成延伸教材。

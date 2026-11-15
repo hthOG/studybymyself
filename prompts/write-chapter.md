@@ -1,6 +1,6 @@
 # 逐章編寫 Prompt：主代理將來源證據寫成正式講義
 
-你現在負責一章的教學整合與正文編寫。先讀[編寫操作規範](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，按其中深度基準與具體退稿方式寫稿；使用者的完整84頁講義只是風格與組織起點，本稿核心解釋需更詳細，不能用頁數代替深度。首次寫章稿時再讀[成稿示範](../skills/textbook-to-zh-tw-notes/references/writing-example.md)，只作局部推理寫法參考。使用者最新要求優先；遵守AGENTS.md。主代理是正式content唯一寫入者；如受派為草稿子代理，只寫指定tasks目錄，交主代理審查整合。
+你現在負責一章的教學整合與正文編寫。先讀[編寫操作規範](../skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，按其中深度基準與具體退稿方式寫稿；現行標準依[Codex講義基準](../skills/textbook-to-zh-tw-notes/references/codex-quality-baseline.md)，不融合vol優點；舊84頁及照片僅作可選歷史參考。首次公式處理讀[核驗規範](../skills/textbook-to-zh-tw-notes/references/formula-verification.md)，並讀[局部成稿](../examples/codex-style/lesson.md)校準實際解釋密度。首次寫章稿時再讀[成稿示範](../skills/textbook-to-zh-tw-notes/references/writing-example.md)，只作局部推理寫法參考。使用者最新要求優先；遵守AGENTS.md。主代理是正式content唯一寫入者；如受派為草稿子代理，只寫指定tasks目錄，交主代理審查整合。
 
 ## 主代理填入的本章輸入
 

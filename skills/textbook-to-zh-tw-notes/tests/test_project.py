@@ -200,6 +200,42 @@ class HandoffTests(unittest.TestCase):
         for record in list(qa["requirements"].values()) + [qa["semantic_review"]]:
             record.update(status="pass", evidence=[{"file": "verification.md", "anchor": "semantic-review"}])
         self.write("qa.json", qa)
+        # Synthetic ledger only exercises structural checks; it is not a physics review.
+        ref = {"file": "verification.md", "anchor": "E1"}
+        passed = {"status": "pass", "evidence": [ref]}
+        self.write("math-audit.json", {"schema_version": 1,
+            "source_sha256": self.read("source.json")["sha256"], "conventions_ref": ref,
+            "entries": [{"item_id": "E1", "author": "fixture-author", "reviewer": "fixture-reviewer",
+                "status": "pass", "issues": [],
+                "reviewed_files": {"content/math/E1.tex": project.digest(self.root / "content/math/E1.tex")},
+                "evidence_files": {"verification.md": project.digest(self.root / "verification.md")},
+                "checks": {key: dict(passed) for key in
+                           ("source_visual", "recompute", "dimension", "limit", "domain")}}]})
+
+    def test_teaching_math_review_is_required_and_stale_reviews_fail(self):
+        self.ready_teaching()
+        self.assertEqual(self.errors("teaching"), [])
+        ledger = self.root / "math-audit.json"
+        original = ledger.read_bytes()
+        ledger.unlink()
+        self.assertTrue(any("missing math-audit.json" in e for e in self.errors("teaching")))
+        ledger.write_bytes(original)
+        equation = self.root / "content/math/E1.tex"
+        old_equation = equation.read_bytes()
+        equation.write_bytes(old_equation + b"% changed\n")
+        self.assertTrue(any("changed since review" in e for e in self.errors("teaching")))
+        equation.write_bytes(old_equation)
+        evidence = self.root / "verification.md"
+        evidence.write_bytes(evidence.read_bytes() + b" changed")
+        self.assertTrue(any("changed since review" in e for e in self.errors("teaching")))
+
+    def test_content_snapshot_pins_math_audit_ledger(self):
+        self.ready_teaching()
+        old = project.snapshot(self.root)
+        ledger = self.read("math-audit.json")
+        ledger["entries"][0]["reviewer"] = "a different fixture context"
+        self.write("math-audit.json", ledger)
+        self.assertNotEqual(old, project.snapshot(self.root))
 
     def ready_release(self):
         self.ready_teaching()

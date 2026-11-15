@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate package metadata, links, subagent settings and Python syntax."""
 import ast
+import json
 from pathlib import Path
 import re
 import sys
@@ -37,6 +38,13 @@ def validate(root=ROOT):
                 'default_subagent_model': 'gpt-6.1-terra', 'default_subagent_reasoning_effort': 'medium'}
     if agents != expected:
         raise ValueError('Shared subagent snapshot differs from confirmed settings')
+    opencode = json.loads((root / 'opencode.json').read_text(encoding='utf-8'))
+    if opencode != {'$schema': 'https://opencode.ai/config.json', 'instructions': ['docs/OPENCODE.md']}:
+        raise ValueError('OpenCode entry must load the guide without overriding user model or permissions')
+    native = root / '.opencode/skills/textbook-to-zh-tw-notes/SKILL.md'
+    native_front = yaml.safe_load(native.read_text(encoding='utf-8').split('---', 2)[1])
+    if native_front.get('name') != skill.name or not native_front.get('description'):
+        raise ValueError('Invalid OpenCode skill entry')
     for p in root.rglob('*.py'):
         if any(part in {'.venv', 'work', 'books', 'inputs', '.git'} for part in p.relative_to(root).parts):
             continue
@@ -49,10 +57,17 @@ def validate(root=ROOT):
                      'skills/textbook-to-zh-tw-notes/references/reference-patterns.md',
                      'skills/textbook-to-zh-tw-notes/references/writing-example.md',
                      'skills/textbook-to-zh-tw-notes/references/efficiency.md',
-                     'skills/textbook-to-zh-tw-notes/scripts/reuse.py'):
+                     'skills/textbook-to-zh-tw-notes/scripts/reuse.py',
+                     'docs/OPENCODE.md', 'prompts/opencode-book.md',
+                     'examples/codex-style/source.md', 'examples/codex-style/lesson.md',
+                     'examples/codex-style/verify.py',
+                     'skills/textbook-to-zh-tw-notes/references/codex-quality-baseline.md',
+                     'skills/textbook-to-zh-tw-notes/references/formula-verification.md',
+                     'skills/textbook-to-zh-tw-notes/scripts/math_audit.py',
+                     'skills/textbook-to-zh-tw-notes/scripts/pdf_text_audit.py'):
         if not (root / required).is_file():
             raise ValueError('Missing package entry: ' + required)
-    print(f'Validated Skill YAML, Codex TOML, Python syntax and {checked} relative links.')
+    print(f'Validated Skill/OpenCode entries, Codex TOML, Python syntax and {checked} relative links.')
 
 
 if __name__ == '__main__':

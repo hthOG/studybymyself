@@ -228,6 +228,9 @@ class BookTests(unittest.TestCase):
         inv['items'][1].update(priority='C', priority_reason='Duplicate demonstration',
                                disposition='omitted', omission_basis='editorial_budget', reason='Duplicate; page budget')
         self.fixture.write('inventory.json', inv)
+        ledger = self.fixture.read('math-audit.json')
+        ledger['entries'] = []
+        self.fixture.write('math-audit.json', ledger)
         self.assertEqual(project.run_checks(self.root, 'teaching'), [])
 
     def test_compression_requires_reason_and_output(self):

@@ -147,3 +147,25 @@ repo 的 YAML、TOML、Python 語法及相對文件連結、官方 Skill 格式�
 | 額外頂層安裝器測試 | `python -X utf8 -B -m unittest discover -s tests -v`：退出碼 0，5 項全部因 Bash 不可用而跳過；不計入 92 項通過數，也不作本輪安裝驗收 |
 
 測試與合成工件保存在執行環境的 work/coverage-preview-independent，不收入分享檔案。來源與觀察紀錄明標合成；這些測試只證明程式的對帳與綁定行為，沒有宣稱真實教材語意或視覺品質通過。草稿符號連結拒絕案例在無建立連結權限的宿主使用受控 mock 覆蓋保護分支，不聲稱驗收所有 Windows 權限模式。
+
+## 2026-11-15：OpenCode入口與公式核驗
+
+- repo驗證器通過Skill／OpenCode入口、未變更的Codex設定、Python語法及155個相對連結；官方skill-creator quick_validate以Python UTF-8模式執行通過。
+- 完整Skill回歸108項通過，包含原有真實MiKTeX單章／雙冊編譯。Windows深層原路徑觸及MAX_PATH時，以較短工作區副本、相同最終腳本與測試重跑；不是略過該編譯測試。
+- 其中公式ledger單元測試11項，以及teaching／snapshot整合測試，確認漏項、同作者審核、缺證據、來源／公式／證據變動、未解項目、非法路徑及不適用理由等行為。
+- 最終PDF文字掃描3項測試通過，使用實際PDF文字層；對使用者兩冊vol的唯讀掃描抓到已觀察的候選訂正、占位及內部交接（vol-01共16項、vol-02共10項），每項仍需實際頁面判讀，不能當公式錯誤數量。
+- 既有安裝器模擬測試5項通過：在隔離sandbox內Git Bash無法建立signal pipe，改於獲准的本機測試環境重跑成功；未實際安裝系統套件。
+- 自造Rindler成稿獨立符號計算5項通過，包含故意錯式的反例：漏平方、錯把座標時間當固有時；同時示範只在ρ=1抽一點會漏掉錯誤。這些計算驗本例，不證明其他教材公式。
+- 在本機OpenCode 1.19.5、隔離設定與快取下執行debug skill --pure，成功發現.opencode/skills/textbook-to-zh-tw-notes/SKILL.md並導向權威Skill；未呼叫模型或更改使用者供應商設定。更新repo後需重新啟動OpenCode載入設定。
+- 尚未使用Muse Spark實機製作整本原書、未對六份參考PDF逐式審計，也未重新交付六冊PDF。教學觀察範圍見品質基準；不能把上述測試解讀為與Codex品質等同或公式零錯保證。
+
+重現新增的局部檢查：
+
+```text
+python examples/codex-style/verify.py
+python -m unittest discover -s skills/textbook-to-zh-tw-notes/tests -p test_math_audit.py -v
+python -m unittest discover -s skills/textbook-to-zh-tw-notes/tests -p test_pdf_text_audit.py -v
+opencode debug skill --pure
+```
+
+OpenCode版本不同時先查官方文件及本機help，不能假設debug介面固定。math-audit及內容鎖只驗證紀錄／檔案版本，無法證明實際閱讀、獨立任務或物理正確性。PDF文字掃描為輔助工具，不是release自動判真關卡；原有逐頁視檢仍完整保留。

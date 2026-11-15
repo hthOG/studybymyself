@@ -20,8 +20,11 @@ def inspect_environment():
     return {'python': sys.version.split()[0], 'python_compatible': sys.version_info >= (3, 11),
             'python_modules': modules, 'xelatex': find_xelatex(),
             'codex': shutil.which('codex'), 'shared_subagent_settings': config.get('agents', {}),
+            'opencode': shutil.which('opencode'),
+            'live_opencode_model_verified': False,
             'live_codex_settings_verified': False,
-            'note': 'Use actual Codex tool/config inspection to confirm loaded settings and available slots.'}
+            'note': 'Inspect the actual host to confirm models, image review and subagents. '
+                    'The Codex snapshot is not OpenCode configuration.'}
 
 
 def main():
