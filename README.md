@@ -1,5 +1,7 @@
 # studybymyself
 
+成品圖片直接嵌入實際照片／原圖，不留占位；訂正後直接使用採用的公式與數值，候選、未決策及訂正過程留在隨專案交付的 `logs/corrections.md`。詳見[成品呈現規範](skills/textbook-to-zh-tw-notes/references/reader-facing-content.md)。
+
 ## OpenCode／Muse Spark：以 Codex 講義為品質基準
 
 現行標準是使用者認可的四冊 Codex《黑洞物理導論》，不融合 vol 版本的優點。具體寫法與有頁碼的觀察在[品質基準](skills/textbook-to-zh-tw-notes/references/codex-quality-baseline.md)；原PDF、頁面圖與全文不隨repo上傳。舊84頁講義／照片僅保留為可選歷史參考，與下方舊說明衝突時依現行基準。

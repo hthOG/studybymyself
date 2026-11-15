@@ -40,7 +40,7 @@
 
 ## 正文來源標示與輸出
 
-每節及來源變更的段落用短註「對照原書p.X–Y」；沒有印刷頁碼明寫PDF頁序。工作ID、SHA與稽核表留工作紀錄。忠實中文重述可自然解釋來源，不必每句加AI標籤；新增簡易推導缺步、AI求解及已確認訂正要可辨識，訂正附實際依據。
+每節及來源變更的段落用短註「對照原書p.X–Y」；沒有印刷頁碼明寫PDF頁序。工作ID、SHA與稽核表留工作紀錄。忠實中文重述可自然解釋來源，不必每句加AI標籤；新增簡易推導缺步與AI求解要可辨識；已採用訂正直接整合進正文，原述、實際依據與決策狀態留logs/corrections.md，不印內部未決或核定流程。
 
 正式章稿為content/chapters/<章ID>.tex，提示／答案為content/answers/<章ID>.tex，重要公式為content/math/<章ID>-<物件ID>.tex。使用既有LaTeX環境：principle、examplebox、sourcederivation、aisupplement、correction；sourcepage標來源。label採章ID前綴，公式單一權威檔案，排版只input，不另重寫。
 

@@ -32,3 +32,5 @@
 ## 逐項公式證據
 
 首次核驗另讀[公式核驗規範](../skills/textbook-to-zh-tw-notes/references/formula-verification.md)。先獨立由原頁和前提重建再比較作者稿；不同任務上下文可用同模型，不能作者自評充當獨立核驗。逐項提供source_visual、recompute及適用的dimension/limit/domain證據，非數學概念題改做conceptual核對，供主代理合入math-audit.json。核原頁及約定優先於記憶公式；候選不得當定案。保存實際程式及輸出並固定證據版本；未執行不可填pass。
+
+成品呈現依[圖與訂正規範](../skills/textbook-to-zh-tw-notes/references/reader-facing-content.md)：確認PDF實際嵌入原圖而非空框；訂正證據、原述與內部決策狀態到logs/corrections.md查核，不因正文沒印勘誤框就退稿。正文核對的是採用後的內容與推導是否正確、完整。

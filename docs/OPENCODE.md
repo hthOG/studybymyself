@@ -43,3 +43,7 @@ references/formula-verification.md 與逐章編寫規範，使用 prompts/openco
 ## 官方介面依據
 
 於2026-11-15查閱 [Rules](https://opencode.ai/docs/rules/)、[Agent Skills](https://opencode.ai/docs/skills/)、[Agents](https://opencode.ai/docs/agents/)、[Models](https://opencode.ai/docs/models/)。介面隨版本變動時以當前官方文件與本機實際工具為準。本專案未新增自動同意權限，也不把其他宿主的設定檔當作 OpenCode 設定。
+
+## 成品圖片與訂正（使用者補充）
+
+依[成品規範](../skills/textbook-to-zh-tw-notes/references/reader-facing-content.md)，由代理直接擷取並嵌入真正照片／原圖，不留占位。正文呈現採用後公式與數值，不印候選、未決策及內部訂正過程；詳細紀錄在書籍專案logs/corrections.md，隨LaTeX專案一併交付供使用者查找。核驗仍在背景執行，不把log狀態印成教材。

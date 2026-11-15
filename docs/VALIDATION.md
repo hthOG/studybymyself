@@ -169,3 +169,7 @@ opencode debug skill --pure
 ```
 
 OpenCode版本不同時先查官方文件及本機help，不能假設debug介面固定。math-audit及內容鎖只驗證紀錄／檔案版本，無法證明實際閱讀、獨立任務或物理正確性。PDF文字掃描為輔助工具，不是release自動判真關卡；原有逐頁視檢仍完整保留。
+
+## 2026-11-15補充：成品呈現規範
+
+直接嵌入原圖、訂正決策只留log的文件更新：repo驗證器通過166個相對連結，Skill quick_validate通過，既有PDF文字掃描3項測試通過。本次未修改核驗程式，未重跑完整108項Skill suite，也未重製六份參考PDF。

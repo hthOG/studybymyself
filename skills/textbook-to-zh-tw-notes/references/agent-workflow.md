@@ -50,7 +50,7 @@ Codex子代理設定以 repo `.codex/config.toml` 為預期預設：enabled=true
 
 子代理只可寫 `tasks/<task_id>/`；不同任務不能共寫同一目錄。主代理核對原檔雜湊、範圍、頁碼、證據，再合併 coverage.json、inventory.json、book.json、progress.json、共用術語與正式content。子代理可產出草稿片段，主代理審核後才移入content；不得直接把未核實片段列為covered。
 
-回報的同一物件若不一致，主代理指定核驗任務並附具體矛盾；不以多數決解公式或來源。確認錯誤後在正文訂正註解，verification保留原述、復算與外部第一手來源。未解關鍵歧義才詢問使用者。
+回報的同一物件若不一致，主代理指定核驗任務並附具體矛盾；不以多數決解公式或來源。確認錯誤後直接更新正文採用的公式與解釋，訂正前後、決策狀態、復算與外部第一手來源留logs/corrections.md及verification，不印內部核定過程。未解關鍵歧義才詢問使用者。
 
 ## 6. 退回條件
 

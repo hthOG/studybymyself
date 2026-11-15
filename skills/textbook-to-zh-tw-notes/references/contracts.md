@@ -137,3 +137,5 @@ FLS的`PWD`與相對／絕對`INPUT`／`OUTPUT`會安全正規化。專案內所
 ## 公式核驗ledger（現行teaching必檢）
 
 新增專案根math-audit.json，格式、遷移及失效規則依[公式核驗規範](formula-verification.md)。凡covered/compressed的equation、derivation、example、exercise均須逐項覆蓋；來源辨識、獨立核算及適用檢查有真實證據。teaching自動檢查來源SHA、作者／核驗任務區分、output_refs稿件及證據指紋、錨點、未解狀態和合法路徑。snapshot另固定ledger及所列稿件／證據現況。工具不判數學真偽、不執行ledger指令、不自動填pass；舊專案補足有效核驗資料才正式交付。
+
+成品圖與訂正呈現依[成品規範](reader-facing-content.md)。書籍專案新增logs/corrections.md供使用者查找訂正前後、依據及內部決策；不編入PDF。math-audit證據引用若使用此log，須固定其實際雜湊。選入圖片仍需實際圖檔及正文嵌入，不能以圖像位置註記代替。
