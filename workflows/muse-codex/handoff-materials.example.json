@@ -1,0 +1,15 @@
+{
+  "user_request": "使用者指定Muse閱讀並產出紀錄，Codex進行正文寫作與排版；此為格式示例，須換成實際要求",
+  "scope": "整本書；冊數要求與範圍須記實際值",
+  "reading_summary": "說明逐頁文字、看圖、目錄與物件清單如何核對；不可將本範例當完成證據",
+  "completed_batches": [],
+  "pending_batches": ["示例：尚待閱讀的批次ID"],
+  "materials": {
+    "concepts": {"status": "provided", "files": ["tasks/batch-01/concepts.md"]},
+    "formulas_derivations": {"status": "provided", "files": ["tasks/batch-01/formulas.tex"]},
+    "figures_tables": {"status": "provided", "files": ["tasks/batch-01/figures.md", "tasks/batch-01/figures/figure-01.png"]},
+    "exercises": {"status": "provided", "files": ["tasks/batch-01/exercises.md"]},
+    "terms_symbols": {"status": "provided", "files": ["tasks/batch-01/terms.md"]},
+    "issues_corrections": {"status": "provided", "files": ["logs/corrections.md", "tasks/batch-01/checks.md"]}
+  }
+}

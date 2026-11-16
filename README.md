@@ -31,6 +31,10 @@ math_audit init在選題、正文落點及covered/compressed清單建立後執�
 
 將一本英文原文教科書，整理成 **預設2–4冊繁體中文自學講義；使用者指定冊數時依指定，不受2–4冊限制。每冊最多100頁**。可在 Windows 或 Ubuntu 的 Codex 環境使用；讀者學過基礎微積分。主代理先解析目錄、平行委派子代理閱讀，最後統一教學內容與 PDF。
 
+## 指定 Muse 閱讀、Codex 寫作與排版
+
+這是可選工作方式，**使用者明確指定時才採用**。請由獨立的 [Muse→Codex 工作流](workflows/muse-codex/README.md) 開始，使用其中的 [Muse prompt／goal](workflows/muse-codex/muse-read.md) 及 [Codex prompt／goal](workflows/muse-codex/codex-write.md)。交接包必須含原書實體副本與所有必要資料；工具會複製、固定版本及檢查缺檔。
+
 ## 直接交給 Codex
 
 把下面這段交給新的 Codex 工作，填入原書的本機路徑即可：
@@ -156,6 +160,7 @@ prompts/                        全書啟動、續作、來源子任務、核驗
 skills/textbook-to-zh-tw-notes/   可攜 Skill、參考規範、LaTeX模板與檢查器
 setup.ps1 / setup.sh / scripts/  Windows／Ubuntu環境、doctor與測試工具
 docs/                           使用者需求、詳細全書流程與驗證說明
+workflows/muse-codex/            使用者指定時採用的跨工具分工、prompt與私人封裝工具
 ```
 
 repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills 才能執行。需要 Skill 清單自動探索時，依目前 Codex 的 Skill 安裝機制另行安裝 `skills/textbook-to-zh-tw-notes`；repo 的 AGENTS.md 仍是分工與專案設定入口。
@@ -166,6 +171,7 @@ repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills �
 .\.venv\Scripts\python.exe scripts\validate_repo.py
 .\.venv\Scripts\python.exe -m unittest discover -s skills\textbook-to-zh-tw-notes\tests -v
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m unittest discover -s workflows/muse-codex -p test_handoff.py -v
 ```
 
 驗證範圍與尚未驗證之處見 [VALIDATION](docs/VALIDATION.md)。這是代理執行規範與輔助工具，沒有聲稱已完成真實原書測試。環境安裝器的實際完整系統安裝另列驗證狀態，不用模擬測試冒充。
@@ -174,4 +180,4 @@ repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills �
 
 冊數規則：預設2–4冊；使用者指定時依指定冊數（例如1冊或5冊），每冊仍最多100頁。初始化使用 `book.py init --pdf <原書.pdf> --out <新專案> --volumes 5 --volume-count-request "使用者指定5冊"`；主代理記錄真實要求，不另向使用者重複確認。資料格式、續作及內容鎖規則見[分冊契約](skills/textbook-to-zh-tw-notes/references/book-contract.md)。
 
-可採用[Muse閱讀、Codex寫作與排版](docs/MUSE-CODEX-HANDOFF.md)：以可回查的原頁、公式、圖與題目資料包交接，由Codex整合正文並獨立核算；不以聊天摘要或舊pass代替證據。這是可選分工，不更改既有模型設定。
+可選分工已獨立放在 [workflows/muse-codex](workflows/muse-codex/README.md)。**只有使用者明確指定「Muse閱讀並產出紀錄、Codex寫作＋排版」時才採用**；一般工作依原流程。內附兩方可貼上的 prompt／goal、資料包規格及封裝／檢查工具。私人交接資料夾必須實際複製一份原文書，並包含完整來源專案、原頁、公式、原圖、原題、術語、查核紀錄與使用的規範工具，讓 Codex 可獨立接手；原書與私人資料留本機，不提交公開 GitHub。

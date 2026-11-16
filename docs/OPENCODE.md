@@ -52,4 +52,4 @@ references/formula-verification.md 與逐章編寫規範，使用 prompts/openco
 
 正文依[中文解釋規範](../skills/textbook-to-zh-tw-notes/references/prose-and-explanation.md)與[成稿示範](../examples/reader-prose/lesson.md)。學習目標、讀完應能、先備清單、目標對照表只留outline；原書逐句照錄／寫作檢查點、Tier交接等作者語不印進PDF。重要公式在概念與符號說明後就地引入，不先傾倒整章公式。讀者應得到連貫解釋與完整計算，不是模板標籤或交接摘要。
 
-使用者若選擇分工，可按[Muse→Codex交接指南](MUSE-CODEX-HANDOFF.md)，由Muse完整閱讀並分批產出來源證據，Codex接受後負責正文及排版。
+只有使用者明確指定這種分工時，才採用獨立的 [Muse→Codex工作流](../workflows/muse-codex/README.md)：Muse完整閱讀並產出來源紀錄，封裝時實際複製原書及完整必要資料；Codex接受後負責正文、獨立核算及排版。兩方prompt／goal和交接工具均在該獨立資料夾，私人原書與資料包不提交公開GitHub。

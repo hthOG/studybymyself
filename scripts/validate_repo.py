@@ -64,7 +64,11 @@ def validate(root=ROOT):
                      'skills/textbook-to-zh-tw-notes/references/codex-quality-baseline.md',
                      'skills/textbook-to-zh-tw-notes/references/formula-verification.md',
                      'skills/textbook-to-zh-tw-notes/scripts/math_audit.py',
-                     'skills/textbook-to-zh-tw-notes/scripts/pdf_text_audit.py'):
+                     'skills/textbook-to-zh-tw-notes/scripts/pdf_text_audit.py',
+                     'workflows/muse-codex/README.md', 'workflows/muse-codex/muse-read.md',
+                     'workflows/muse-codex/codex-write.md', 'workflows/muse-codex/handoff.py',
+                     'workflows/muse-codex/handoff-materials.example.json',
+                     'workflows/muse-codex/test_handoff.py'):
         if not (root / required).is_file():
             raise ValueError('Missing package entry: ' + required)
     print(f'Validated Skill/OpenCode entries, Codex TOML, Python syntax and {checked} relative links.')

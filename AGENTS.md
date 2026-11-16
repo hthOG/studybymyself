@@ -42,3 +42,7 @@ Windows 一鍵準備：`powershell -NoProfile -ExecutionPolicy Bypass -File .\se
 ## 中文正文與讀者內容
 
 首次寫作及修稿前依[中文解釋規範](skills/textbook-to-zh-tw-notes/references/prose-and-explanation.md)和[成稿示範](examples/reader-prose/lesson.md)處理正文。PDF不列學習目標、讀完應能、先備清單、目標對照表或作者檢查點；這些只留outline／交接。不得出現「原書逐句照錄，寫作時當檢查點用」「新量中英並陳」「講義必留」等製作指令。重要公式在概念與符號建立後於首次使用處顯示，單一權威不是章首公式傾倒；用完整句子說明因果與操作，不能只填判讀／選法等標籤。
+
+## 使用者指定的可選分工
+
+只有使用者明確指定「Muse閱讀並產出紀錄、Codex寫作＋排版」時，才採用獨立的 [Muse→Codex工作流](workflows/muse-codex/README.md)，未指定則沿用原流程。私人交接包必須實際複製原文書，保存完整專案、原頁證據、公式、原圖、題面、術語及規範工具；用內附工具凍結、檢查及準備新工作目錄。不提交原書或私人包到公開repo。Codex接受來源後是正式稿件唯一整合者，舊pass不能直接繼承。
