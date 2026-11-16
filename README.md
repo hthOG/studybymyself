@@ -1,5 +1,8 @@
 # studybymyself
 
+正文以[中文解釋規範](skills/textbook-to-zh-tw-notes/references/prose-and-explanation.md)及[完整成稿](examples/reader-prose/lesson.md)為準：自然完整句、公式就地引入、推導與解答走得通。學習目標、讀完應能、先備清單及作者檢查點只留內部，不印PDF。具體差異見[兩冊可讀性比較](docs/READABILITY-2026-11-16.md)。
+
+
 成品圖片直接嵌入實際照片／原圖，不留占位；訂正後直接使用採用的公式與數值，候選、未決策及訂正過程留在隨專案交付的 `logs/corrections.md`。詳見[成品呈現規範](skills/textbook-to-zh-tw-notes/references/reader-facing-content.md)。
 
 ## OpenCode／Muse Spark：以 Codex 講義為品質基準
@@ -43,7 +46,7 @@ math_audit init在選題、正文落點及covered/compressed清單建立後執�
 必要時執行一鍵環境準備；遵守 Codex 當前權限，完成後交付 PDF、LaTeX 與核驗報告。
 ```
 
-[全書啟動 prompt](prompts/start-book.md)負責從閱讀到交付；[逐章編寫 prompt](prompts/write-chapter.md)直接規定章稿如何寫。寫作前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)：含自造來源、失敗短稿、完整推導／例題及章末解答，示範內容不得移入真實原書。[續作 prompt](prompts/resume-book.md)處理中斷續接。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
+[全書啟動 prompt](prompts/start-book.md)負責從閱讀到交付；[逐章編寫 prompt](prompts/write-chapter.md)直接規定章稿如何寫。寫作前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，首次寫章稿時讀[中文成稿示範](examples/reader-prose/lesson.md)：含自造來源與兩個連貫小節，示範概念、公式、計算與結果如何銜接；示範內容不得移入真實原書。[續作 prompt](prompts/resume-book.md)處理中斷續接。先把 repo 開為 Codex 專案，再開始讀原書；若在別處工作，須明確讀入本 repo 的 AGENTS.md，不能假定遠端 URL 的規範會自動生效。
 
 想先看 agent 是否真的能照規範編寫，可讀[實際試寫與審閱](examples/authoring-trial/README.md)。同一份兩頁自造英文來源另有[詳細版章稿](examples/authoring-trial/detailed/chapter.tex)及[章末完整解答](examples/authoring-trial/detailed/answers.tex)：補清模型條件如何用於推導、積分常數與邊界代入、方向／單位判讀及逐問解題。詳細版已由獨立代理審閱，Windows XeLaTeX 兩次編譯為 5 頁，全部頁面均已渲染並檢視。原有 3 頁試寫及其歷史紀錄保留；這些有界試驗與正式原書全書驗收分開記錄。
 
@@ -170,3 +173,5 @@ repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills �
 原書與工作資料放在 repo 外或被忽略的 `inputs/`、`books/`。提供的完整講義與範本照片只用來提取教學／版面偏好，未收入本 repo。上游方法與 MIT 授權見 [來源說明](skills/textbook-to-zh-tw-notes/references/provenance.md)。
 
 冊數規則：預設2–4冊；使用者指定時依指定冊數（例如1冊或5冊），每冊仍最多100頁。初始化使用 `book.py init --pdf <原書.pdf> --out <新專案> --volumes 5 --volume-count-request "使用者指定5冊"`；主代理記錄真實要求，不另向使用者重複確認。資料格式、續作及內容鎖規則見[分冊契約](skills/textbook-to-zh-tw-notes/references/book-contract.md)。
+
+可採用[Muse閱讀、Codex寫作與排版](docs/MUSE-CODEX-HANDOFF.md)：以可回查的原頁、公式、圖與題目資料包交接，由Codex整合正文並獨立核算；不以聊天摘要或舊pass代替證據。這是可選分工，不更改既有模型設定。

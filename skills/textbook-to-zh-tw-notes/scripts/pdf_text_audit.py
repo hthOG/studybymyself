@@ -14,6 +14,8 @@ PATTERNS = {
     "internal_handoff": r"不印正式|草稿子代理|figures\.json|verification-fragment",
     "placeholder": r"此處放原圖|此處放原書|此處(?:補寫|插入)|原書\s*p\.?\s*[?？]|TODO|PLACEHOLDER",
     "pending_review": r"待視覺|未逐項全驗|待(?:核驗|驗算|補圖)",
+    "authoring_instruction": r"新量中英並陳|條條使用點|寫稿(?:壓|重繪)|講義必留|Tier\d+交接|逐句照錄.{0,30}檢查點",
+    "reader_planning": r"學習目標|(?:讀完|學完)應能|先備(?:知識|清單)|目標對照表",
 }
 
 

@@ -41,6 +41,14 @@ class PDFTextAuditTests(unittest.TestCase):
     def test_normal_content_has_no_internal_markers(self):
         self.assertEqual(pdf_text_audit.inspect(self.make_pdf("座標時間與固有時的關係")), [])
 
+    def test_author_instructions_and_learning_goals_are_flagged(self):
+        found = pdf_text_audit.inspect(self.make_pdf("Tier1交接 新量中英並陳 學習目標 讀完應能"))
+        self.assertTrue(any(f["kind"] == "authoring_instruction" for f in found))
+        self.assertTrue(any(f["kind"] == "reader_planning" for f in found))
+
+    def test_physical_conditions_are_reader_content(self):
+        self.assertEqual(pdf_text_audit.inspect(self.make_pdf("這裡假設球對稱，角度以弧度表示。")), [])
+
 
 if __name__ == "__main__":
     unittest.main()

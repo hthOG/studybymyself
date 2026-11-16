@@ -47,3 +47,9 @@ references/formula-verification.md 與逐章編寫規範，使用 prompts/openco
 ## 成品圖片與訂正（使用者補充）
 
 依[成品規範](../skills/textbook-to-zh-tw-notes/references/reader-facing-content.md)，由代理直接擷取並嵌入真正照片／原圖，不留占位。正文呈現採用後公式與數值，不印候選、未決策及內部訂正過程；詳細紀錄在書籍專案logs/corrections.md，隨LaTeX專案一併交付供使用者查找。核驗仍在背景執行，不把log狀態印成教材。
+
+## 中文正文最新偏好
+
+正文依[中文解釋規範](../skills/textbook-to-zh-tw-notes/references/prose-and-explanation.md)與[成稿示範](../examples/reader-prose/lesson.md)。學習目標、讀完應能、先備清單、目標對照表只留outline；原書逐句照錄／寫作檢查點、Tier交接等作者語不印進PDF。重要公式在概念與符號說明後就地引入，不先傾倒整章公式。讀者應得到連貫解釋與完整計算，不是模板標籤或交接摘要。
+
+使用者若選擇分工，可按[Muse→Codex交接指南](MUSE-CODEX-HANDOFF.md)，由Muse完整閱讀並分批產出來源證據，Codex接受後負責正文及排版。

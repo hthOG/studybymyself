@@ -17,9 +17,9 @@
 
 ## 正文編寫責任
 
-主代理首次編寫章稿前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，依[逐章編寫Prompt](prompts/write-chapter.md)執行；首次寫章稿時讀[完整小節示範](skills/textbook-to-zh-tw-notes/references/writing-example.md)。以使用者認可的四冊 Codex《黑洞物理導論》為現行品質基準，學習動機、定義、逐步推導、解讀及完整題解的串接；舊84頁範例與照片只保留作可選歷史參考。逐節補出讀者重建關鍵推理所需的理由與橋接，完整回答章末核心題；具體標準與修補定位見編寫規範，不以增加稽核標籤或機器pass代替可自學的講解。所有補強仍遵守原書內容邊界及分冊頁限。
+主代理首次編寫章稿前必讀[編寫操作規範](skills/textbook-to-zh-tw-notes/references/chapter-authoring.md)，依[逐章編寫Prompt](prompts/write-chapter.md)執行；首次寫章稿時讀[中文成稿示範](examples/reader-prose/lesson.md)。以使用者認可的四冊 Codex《黑洞物理導論》為現行品質基準，學習動機、定義、逐步推導、解讀及完整題解的串接；舊84頁範例與照片只保留作可選歷史參考。逐節補出讀者重建關鍵推理所需的理由與橋接，完整回答章末核心題；具體標準與修補定位見編寫規範，不以增加稽核標籤或機器pass代替可自學的講解。所有補強仍遵守原書內容邊界及分冊頁限。
 
-首次編寫時另讀[使用者範本寫法](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)，依來源選用公式鏈、局部微積分灰框、模型／圖表比較、完整表與挖空自測、概念到應用題梯度。把選用理由接入既有 outline，不要求每節套滿模式；先前提供的13張照片只作可選教學模式參考，與完整84頁範例一樣都不是本次原書來源或已核正確教材。不得新增來源外長篇數學教程，或模仿範本的大段空白。
+需要特定舊圖表／題型模式時再查[使用者範本寫法](skills/textbook-to-zh-tw-notes/references/reference-patterns.md)，依來源選用公式鏈、局部微積分灰框、模型／圖表比較、完整表與挖空自測、概念到應用題梯度。把選用理由接入既有 outline，不要求每節套滿模式；先前提供的13張照片只作可選教學模式參考，與完整84頁範例一樣都不是本次原書來源或已核正確教材。不得新增來源外長篇數學教程，或模仿範本的大段空白。
 
 ## 成品呈現
 
@@ -38,3 +38,7 @@
 Windows 一鍵準備：`powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1`。Ubuntu24.04+執行`bash setup.sh`；平台差異見[平台指南](docs/PLATFORMS.md)。PowerShell Bypass為當次程序設定，不修改永久執行原則；遵守宿主批准流程，不能繞過拒絕。依賴查驗及編譯見 README。若 subagent 工具不可用，完成可進行的建檔並說明阻礙；不得改由主代理整本閱讀。
 
 正式交付以最終 PDF、可編輯 LaTeX 專案、原文頁碼對照、選題及刪節清單、品質報告為準。機器檢核只驗證資料與檔案一致性，不能代替物理、引用語意及逐頁視覺檢查。推送 repo 時只提交工具與規範，不提交原書、頁面影像、私人工作資料、完整本機 config 或憑證。
+
+## 中文正文與讀者內容
+
+首次寫作及修稿前依[中文解釋規範](skills/textbook-to-zh-tw-notes/references/prose-and-explanation.md)和[成稿示範](examples/reader-prose/lesson.md)處理正文。PDF不列學習目標、讀完應能、先備清單、目標對照表或作者檢查點；這些只留outline／交接。不得出現「原書逐句照錄，寫作時當檢查點用」「新量中英並陳」「講義必留」等製作指令。重要公式在概念與符號建立後於首次使用處顯示，單一權威不是章首公式傾倒；用完整句子說明因果與操作，不能只填判讀／選法等標籤。

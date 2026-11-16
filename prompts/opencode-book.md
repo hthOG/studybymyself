@@ -23,3 +23,7 @@
 依[成品規範](../skills/textbook-to-zh-tw-notes/references/reader-facing-content.md)，代理自行擷取／裁切實際照片與原圖並直接嵌入正文，先產生圖檔再寫includegraphics；不留占位框、檔名框或要求讀者自行插圖。訂正後直接使用採用的公式、數值及解釋，候選、未決策、原錯式、決策過程與完整依據留logs/corrections.md並隨可編輯專案交付；預設不印訂正流程框。背景核驗及狀態紀錄照常。
 
 冊數依使用者指定，不受2–4冊限制；未指定才預設2–4冊。主代理將指定冊數與原話／訊息定位記入book.json的volume_count_request（count、evidence），無需重複確認。每冊全部PDF頁面最多100頁及完整核驗維持；依[分冊契約](../skills/textbook-to-zh-tw-notes/references/book-contract.md)初始化與驗收。
+
+## 讀者不看作者計畫
+
+依[中文解釋規範](../skills/textbook-to-zh-tw-notes/references/prose-and-explanation.md)及[連貫成稿](../examples/reader-prose/lesson.md)寫正文。學習目標、讀完應能、先備清單、目標對照表只留outline，不印PDF；Tier交接、逐句照錄／寫作檢查點、講義必留也只留工作紀錄。自然完整句要先建立概念與關係，重要式首次使用時就地顯示，不能把整章公式在章首一次輸出。判讀、選法等小標不證明題解完整，必須有走得通的理由與計算。
