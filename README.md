@@ -26,7 +26,7 @@ python skills/textbook-to-zh-tw-notes/scripts/pdf_text_audit.py <最終PDF>
 math_audit init在選題、正文落點及covered/compressed清單建立後執行，只產生pending模板，不覆寫舊檔。舊專案需補真實有效的核驗紀錄；工具通過只表示紀錄完整且版本對應，不代表公式已被機器證明正確。未完成原頁辨識、獨立核算或最終逐頁看圖時不能宣稱完成。測試狀態見[VALIDATION](docs/VALIDATION.md)；尚未以Muse Spark實機跑完整本書，不能承諾零錯。
 
 
-將一本英文原文教科書，整理成 **2–4 冊繁體中文自學講義，每冊最多 100 頁**。可在 Windows 或 Ubuntu 的 Codex 環境使用；讀者學過基礎微積分。主代理先解析目錄、平行委派子代理閱讀，最後統一教學內容與 PDF。
+將一本英文原文教科書，整理成 **預設2–4冊繁體中文自學講義；使用者指定冊數時依指定，不受2–4冊限制。每冊最多100頁**。可在 Windows 或 Ubuntu 的 Codex 環境使用；讀者學過基礎微積分。主代理先解析目錄、平行委派子代理閱讀，最後統一教學內容與 PDF。
 
 ## 直接交給 Codex
 
@@ -39,7 +39,7 @@ math_audit init在選題、正文落點及covered/compressed清單建立後執�
 輸出目錄：<本機資料夾絕對路徑>
 處理範圍：整本書。
 使用 repo 的子代理設定，主代理只讀目錄、交接及必要的小範圍原文，
-平行分派 subagent 分批閱讀、檢索及核對；整理為2–4冊、每冊最多100頁。
+平行分派 subagent 分批閱讀、檢索及核對；冊數依使用者指定，未指定則預設2–4冊；每冊最多100頁。
 必要時執行一鍵環境準備；遵守 Codex 當前權限，完成後交付 PDF、LaTeX 與核驗報告。
 ```
 
@@ -120,7 +120,7 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 ## 流程與檢查
 
 1. 環境檢查 → `book.py init` → 人工核對完整TOC，填妥並驗證 `toc.json`（含原始PDF SHA、逐章source units及有證據的nonchapter排除；原PDF每頁都須有unit）→ 分批任務清單。
-2. 子代理平行閱讀／搜尋／術語／圖表回報，主代理對帳與規劃2–4冊。
+2. 子代理平行閱讀／搜尋／術語／圖表回報，主代理對帳，依使用者指定冊數規劃；未指定則預設2–4冊。
 3. 主代理整合章稿、原書代表題、逐題核驗；寫作與已完成小節的語意核驗可並行，每節完成即保存續點。
 4. Teaching 與內容鎖完成後才做正式編譯。編寫期間可在獨立 draft 目錄編譯工作稿；draft PDF 不建立正式成功收據，也不代表可進入 release。正式各冊編譯後做實際頁數／逐頁視覺 QA，必要時回到內容取捨。
 5. 交付所有冊PDF、LaTeX專案、來源對照、選題／刪節清單與品質報告。
@@ -142,7 +142,7 @@ Codex 是否載入專案設定也受其信任與管理設定影響，主代理�
 
 正式編譯會以 XeLaTeX recorder (`.fls`) 記錄實際讀入檔案，使用新的隔離輸出目錄，至少完成兩次穩定編譯，並將成功／失敗狀態、鎖檔、版面、輸入清單及 PDF／log／recorder 雜湊寫入 build receipt。`prepare-review` 驗證receipt後，會從最終PDF以PyMuPDF本機render逐頁PNG及manifest，記錄PDF/receipt SHA、頁數、渲染參數、頁碼對應與每圖SHA，並清空舊notes；release核對全部雜湊與映射，不重render，仍要求人實際逐頁記觀察，機器不自動pass。普通 `render.py pdf` 是draft，只輸出not_reviewed圖。缺少toc ledger或舊receipt/preview格式時fail closed；補核TOC、保留有效teaching核驗、重鎖並重編／prepare，不必重讀未變且已核驗的原書內容。雜湊偵測一般檔案變更，不是抵禦使用者重寫所有紀錄的加密簽章。
 
-`init` 只抽字建檔，不能自動寫出講義或標記已讀；章節結構、分冊規劃、正式內容與 QA 由代理依契約完成。`book.py check` 會讀實際PDF並攔下未核TOC、章映射／來源unit覆蓋缺漏、第五冊、超過100頁、未被實際編譯讀入的內容落點、內容變動與不完整預覽manifest/視覺紀錄。TOC是否完整、教學內容是否正確及頁面實際品質仍需人工核對。
+`init` 只抽字建檔，不能自動寫出講義或標記已讀；章節結構、分冊規劃、正式內容與 QA 由代理依契約完成。`book.py check` 會讀實際PDF並攔下未核TOC、章映射／來源unit覆蓋缺漏、未記錄使用者指定卻超出預設2–4冊、冊數與使用者指定不符、超過100頁、未被實際編譯讀入的內容落點、內容變動與不完整預覽manifest/視覺紀錄。TOC是否完整、教學內容是否正確及頁面實際品質仍需人工核對。
 
 ## repo 結構
 
@@ -168,3 +168,5 @@ repo 自身已可被明確讀取使用，不必把檔案安裝到全域 Skills �
 驗證範圍與尚未驗證之處見 [VALIDATION](docs/VALIDATION.md)。這是代理執行規範與輔助工具，沒有聲稱已完成真實原書測試。環境安裝器的實際完整系統安裝另列驗證狀態，不用模擬測試冒充。
 
 原書與工作資料放在 repo 外或被忽略的 `inputs/`、`books/`。提供的完整講義與範本照片只用來提取教學／版面偏好，未收入本 repo。上游方法與 MIT 授權見 [來源說明](skills/textbook-to-zh-tw-notes/references/provenance.md)。
+
+冊數規則：預設2–4冊；使用者指定時依指定冊數（例如1冊或5冊），每冊仍最多100頁。初始化使用 `book.py init --pdf <原書.pdf> --out <新專案> --volumes 5 --volume-count-request "使用者指定5冊"`；主代理記錄真實要求，不另向使用者重複確認。資料格式、續作及內容鎖規則見[分冊契約](skills/textbook-to-zh-tw-notes/references/book-contract.md)。

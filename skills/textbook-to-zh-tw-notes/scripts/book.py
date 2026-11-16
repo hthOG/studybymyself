@@ -14,6 +14,26 @@ import project
 import latex_build
 
 
+def volume_count_errors(count: int, request=None) -> list[str]:
+    """Apply the default range or an explicitly recorded user-requested count."""
+    if type(count) is not int or count < 1:
+        return ['Volume count must be a positive integer']
+    if request is None:
+        return [] if 2 <= count <= 4 else ['Default volume count must be 2-4; record the user request for another count']
+    if (not isinstance(request, dict) or type(request.get('count')) is not int
+            or request['count'] < 1 or not isinstance(request.get('evidence'), str)
+            or not request['evidence'].strip()):
+        return ['volume_count_request needs a positive integer count and the actual user request as evidence']
+    return [] if count == request['count'] else ['Volume count must match the recorded user request']
+
+
+def positive_volume_count(value):
+    count = int(value)
+    if count < 1:
+        raise argparse.ArgumentTypeError('volume count must be a positive integer')
+    return count
+
+
 def validate_plan(root: Path, book: dict) -> list[str]:
     errors = project.validate_toc_plan(root, book)
     source = project.load(root / 'source.json')
@@ -24,8 +44,7 @@ def validate_plan(root: Path, book: dict) -> list[str]:
     ids = [c['id'] for c in chapters]
     if len(ids) != len(set(ids)):
         errors.append('Duplicate chapter IDs')
-    if not 2 <= len(volumes) <= 4:
-        errors.append('Book must contain 2-4 volumes')
+    errors.extend(volume_count_errors(len(volumes), book.get('volume_count_request')))
     assigned, outputs, layouts = [], [], []
     volume_ids = [v['id'] for v in volumes]
     if len(volume_ids) != len(set(volume_ids)):
@@ -47,7 +66,7 @@ def validate_plan(root: Path, book: dict) -> list[str]:
                 if not p.is_relative_to(root / 'content') or not project.nonempty(p):
                     errors.append(c['id'] + ': missing content/' + key)
     for v in volumes:
-        if not re.fullmatch(r'vol-[0-9]{2}', v['id']):
+        if not re.fullmatch(r'vol-[0-9]{2,}', v['id']):
             errors.append('Volume ID must be vol-NN: ' + v['id'])
         if not v.get('chapter_ids'):
             errors.append(v['id'] + ': empty volume')
@@ -69,6 +88,11 @@ def validate_plan(root: Path, book: dict) -> list[str]:
 
 
 def init_book(args):
+    evidence = getattr(args, 'volume_count_request', None)
+    request = {'count': args.volumes, 'evidence': evidence} if evidence is not None else None
+    errors = volume_count_errors(args.volumes, request)
+    if errors:
+        raise ValueError('; '.join(errors))
     from pypdf import PdfReader
     original = Path(args.pdf).resolve()
     count = len(PdfReader(str(original)).pages)
@@ -82,8 +106,11 @@ def init_book(args):
                         'qa': {'status': 'pending', 'path': f'build/{vid}.pdf',
                                'log': f'build/{vid}.log', 'build_record': f'build/{vid}.compile.txt',
                                'page_count': 0, 'reviewed_pages': [], 'issues': []}})
-    project.save(root / 'book.json', {'schema_version': 1, 'title': '繁體中文自學講義',
-                                    'chapters_complete': False, 'chapters': [], 'volumes': volumes})
+    plan = {'schema_version': 1, 'title': '繁體中文自學講義',
+            'chapters_complete': False, 'chapters': [], 'volumes': volumes}
+    if request is not None:
+        plan['volume_count_request'] = request
+    project.save(root / 'book.json', plan)
     source = project.load(root / 'source.json')
     project.save(root / 'toc.json', {'schema_version': 1, 'source_sha256': source['sha256'],
                                     'status': 'pending', 'evidence': [], 'chapters': [], 'exclusions': []})
@@ -311,7 +338,10 @@ def main(argv=None):
     init = sub.add_parser('init')
     init.add_argument('--pdf', required=True)
     init.add_argument('--out', required=True)
-    init.add_argument('--volumes', type=int, choices=(2, 3, 4), default=2)
+    init.add_argument('--volumes', type=positive_volume_count, default=2,
+                      help='Planned count, default 2; normally 2-4 unless the user specifies a count')
+    init.add_argument('--volume-count-request',
+                      help='Actual user instruction for this count; records the exception in book.json')
     for command in ('write-layouts', 'compile', 'prepare-review', 'check'):
         p = sub.add_parser(command)
         p.add_argument('project')

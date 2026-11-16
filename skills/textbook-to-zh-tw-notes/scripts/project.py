@@ -547,6 +547,8 @@ def snapshot(root: Path):
                                'chapters': book.get('chapters'), 'title': book.get('title'),
                                'volumes': [{k: v[k] for k in ('id', 'chapter_ids', 'planned_pages', 'layout')}
                                            for v in book.get('volumes', [])]}
+        if 'volume_count_request' in book:
+            result['book_plan']['volume_count_request'] = book['volume_count_request']
         result['evidence']['selection-log.md'] = digest(root / 'selection-log.md')
         result['toc_evidence'] = toc_evidence
     return result

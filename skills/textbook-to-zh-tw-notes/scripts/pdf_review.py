@@ -63,7 +63,7 @@ def create_manifest(root: Path, qa: dict, target_id: str) -> tuple[str, dict]:
     """Render the current receipt-bound PDF and save a page/hash manifest under build/."""
     project = _project_api()
     root = root.resolve()
-    if not re.fullmatch(r"(?:main|vol-[0-9]{2})", target_id):
+    if not re.fullmatch(r"(?:main|vol-[0-9]{2,})", target_id):
         raise ValueError("unsupported PDF review target ID")
     pdf_path = project.local(root, qa["path"])
     receipt_path = project.local(root, qa["build_record"])

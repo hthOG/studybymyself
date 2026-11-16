@@ -1,5 +1,6 @@
 """Synthetic book fixtures exercise page budgets and multi-volume record integrity."""
 import argparse
+import copy
 from pathlib import Path
 import sys
 import unittest
@@ -128,15 +129,97 @@ class BookTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'output ref was not read'):
             book.prepare_review(self.root, self.data)
 
-    def test_fifth_volume_rejected(self):
+    def test_extra_volumes_without_user_request_rejected(self):
         self.data['volumes'] *= 3
         self.save()
         self.assertTrue(book.check_book(self.root))
 
-    def test_single_volume_rejected(self):
+    def test_single_volume_without_user_request_rejected(self):
         self.data['volumes'].pop()
         self.save()
         self.assertTrue(book.check_book(self.root))
+
+    def test_requested_single_volume_passes_release_and_keeps_page_limit(self):
+        self.data['volumes'] = self.data['volumes'][:1]
+        volume = self.data['volumes'][0]
+        volume['chapter_ids'] = ['ch01', 'ch02']
+        self.data['volume_count_request'] = {'count': 1, 'evidence': 'Synthetic user request: one volume'}
+        book.write_layouts(self.root, self.data)
+        self.save()
+        project.save(self.root / 'content-lock.json', project.snapshot(self.root))
+        self.pdf_record(volume, 2)
+        self.save()
+        self.assertEqual(book.check_book(self.root), [])
+        self.pdf_record(volume, 101)
+        self.save()
+        self.assertTrue(any('actual PDF page count' in e for e in book.check_book(self.root)))
+
+    def test_requested_five_volumes_pass_plan_and_release(self):
+        toc = project.load(self.root / 'toc.json')
+        for n in range(3, 6):
+            chapter = copy.deepcopy(self.data['chapters'][1])
+            chapter.update(id=f'ch{n:02d}', title=f'Synthetic chapter {n}', toc_ids=[f'toc-{n:03d}'],
+                           output=f'content/chapters/ch{n:02d}.tex', answers=f'content/answers/ch{n:02d}.tex')
+            for key in ('output', 'answers'):
+                (self.root / chapter[key]).write_text(f'Synthetic content {n}\n', encoding='utf-8')
+            self.data['chapters'].append(chapter)
+            toc_chapter = copy.deepcopy(toc['chapters'][1])
+            toc_chapter.update(id=f'toc-{n:03d}', title=chapter['title'])
+            toc['chapters'].append(toc_chapter)
+            volume = copy.deepcopy(self.data['volumes'][1])
+            volume.update(id=f'vol-{n:02d}', chapter_ids=[chapter['id']], layout=f'layout/vol-{n:02d}.tex')
+            volume['qa'].update(path=f'build/vol-{n:02d}.pdf', log=f'build/vol-{n:02d}.log',
+                                build_record=f'build/vol-{n:02d}.compile.txt',
+                                recorder=f'build/vol-{n:02d}.compile.fls')
+            self.data['volumes'].append(volume)
+        project.save(self.root / 'toc.json', toc)
+        self.assertTrue(any('Default volume count' in e for e in book.validate_plan(self.root, self.data)))
+        self.data['volume_count_request'] = {'count': 5, 'evidence': 'Synthetic user request: five volumes'}
+        book.write_layouts(self.root, self.data)
+        self.save()
+        self.assertEqual(book.validate_plan(self.root, self.data), [])
+        project.save(self.root / 'content-lock.json', project.snapshot(self.root))
+        for volume in self.data['volumes']:
+            self.pdf_record(volume, 2)
+        self.save()
+        self.assertEqual(book.check_book(self.root), [])
+
+    def test_requested_count_change_invalidates_lock(self):
+        before = project.snapshot(self.root)
+        self.data['volume_count_request'] = {'count': 2, 'evidence': 'Synthetic user request: exactly two volumes'}
+        self.save()
+        self.assertNotEqual(before, project.snapshot(self.root))
+        self.assertTrue(book.check_book(self.root))
+
+    def test_three_digit_volume_id_has_no_extra_preview_limit(self):
+        volume = self.data['volumes'][1]
+        volume.update(id='vol-100', layout='layout/vol-100.tex')
+        volume['qa'].update(path='build/vol-100.pdf', log='build/vol-100.log',
+                            build_record='build/vol-100.compile.txt', recorder='build/vol-100.compile.fls')
+        book.write_layouts(self.root, self.data)
+        self.save()
+        self.assertEqual(book.validate_plan(self.root, self.data), [])
+        project.save(self.root / 'content-lock.json', project.snapshot(self.root))
+        for entry in self.data['volumes']:
+            self.pdf_record(entry, 2)
+        self.save()
+        self.assertEqual(book.check_book(self.root), [])
+
+    def test_init_requested_count_and_reject_invalid_before_creating_project(self):
+        for count in (1, 5):
+            fresh = self.fixture.base / f'requested-{count}'
+            result = book.main(['init', '--pdf', str(self.fixture.pdf), '--out', str(fresh),
+                                '--volumes', str(count), '--volume-count-request', f'Synthetic user: {count} volumes'])
+            self.assertEqual(result, 0)
+            plan = project.load(fresh / 'book.json')
+            self.assertEqual(len(plan['volumes']), count)
+            self.assertEqual(plan['volume_count_request']['count'], count)
+        for count, evidence in ((5, None), (0, 'Synthetic invalid request'), (1, ' ')):
+            fresh = self.fixture.base / f'invalid-{count}'
+            with self.assertRaises(ValueError):
+                book.init_book(argparse.Namespace(pdf=str(self.fixture.pdf), out=str(fresh),
+                                                 volumes=count, volume_count_request=evidence))
+            self.assertFalse(fresh.exists())
 
     def test_one_volume_over_100_even_when_total_under_400_fails(self):
         self.pdf_record(self.data['volumes'][0], 101)
